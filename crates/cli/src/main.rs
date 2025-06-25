@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use heurs_core::{LocalRunner, Runner};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 struct Cli {
@@ -10,9 +11,20 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Run {
-        command: String,
-        #[arg(trailing_var_arg = true)]
-        args: Vec<String>,
+        // ソースコードのパス
+        source_path: PathBuf,
+
+        // テストケースの数
+        #[arg(short, long, default_value = "10")]
+        cases: u32,
+
+        // 並列実行数
+        #[arg(short, long, default_value = "1")]
+        parallel: u32,
+
+        // タイムアウト時間(s)
+        #[arg(short, long, default_value = "10")]
+        timeout: u32,
     },
 }
 
@@ -20,26 +32,20 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Run { command, args } => {
+        Commands::Run {
+            source_path,
+            cases,
+            parallel,
+            timeout,
+        } => {
             let runner = LocalRunner::new();
 
-            // Vec<String>を&[&str]に変換
-            let args_refs: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
-
-            match runner.execute(command, &args_refs) {
-                Ok(result) => {
-                    if result.success {
-                        print!("{}", result.stdout);
-                        if !result.stderr.is_empty() {
-                            eprint!("{}", result.stderr);
-                        }
-                    } else {
-                        eprint!("{}", result.stderr);
-                        std::process::exit(result.exit_code.unwrap_or(1));
-                    }
+            match runner.execute(source_path, *cases, *parallel, *timeout) {
+                Ok(_) => {
+                    println!("実行に成功しました");
                 }
                 Err(e) => {
-                    eprintln!("Error executing command: {}", e);
+                    eprintln!("実行に失敗しました: {}", e);
                     std::process::exit(1);
                 }
             }
