@@ -1,11 +1,11 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 
 pub trait Compiler {
     fn compile(
         &self,
-        source_path: &PathBuf,
-        output_path: &PathBuf,
+        source_path: &Path,
+        output_path: &Path,
     ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
@@ -20,8 +20,8 @@ impl CppCompiler {
 impl Compiler for CppCompiler {
     fn compile(
         &self,
-        source_path: &PathBuf,
-        output_path: &PathBuf,
+        source_path: &Path,
+        output_path: &Path,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let output = Command::new("g++")
             .arg(source_path)

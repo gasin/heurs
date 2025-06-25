@@ -4,7 +4,6 @@ use axum::{
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
-use tokio;
 
 #[derive(Serialize, Deserialize)]
 struct User {

@@ -1,6 +1,6 @@
 use crate::compiler::{Compiler, CppCompiler};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use threadpool::ThreadPool;
@@ -9,7 +9,7 @@ use threadpool::ThreadPool;
 pub trait Runner {
     fn execute(
         &self,
-        source_path: &PathBuf,
+        source_path: &Path,
         cases: u32,
         parallel: u32,
         timeout: u32,
@@ -28,12 +28,12 @@ impl LocalRunner {
 impl Runner for LocalRunner {
     fn execute(
         &self,
-        source_path: &PathBuf,
+        source_path: &Path,
         cases: u32,
         parallel: u32,
-        timeout: u32,
+        _timeout: u32,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let compiler: CppCompiler = CppCompiler::default();
+        let compiler = CppCompiler::new();
         let binary_path = PathBuf::from("./a.out");
         compiler.compile(source_path, &binary_path)?;
 
