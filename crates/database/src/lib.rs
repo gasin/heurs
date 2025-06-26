@@ -1,3 +1,5 @@
-pub mod entities;
+pub mod entity;
+pub mod prelude;
 pub mod repository;
-pub mod submission;
+
+pub use prelude::*;
