@@ -1,4 +1,4 @@
-use crate::entity::submission::{self, ActiveModel, Model};
+use crate::entities::submission::{self, ActiveModel, Model};
 use crate::repository::SubmissionRepository;
 use anyhow::Error;
 use async_trait::async_trait;

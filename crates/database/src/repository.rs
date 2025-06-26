@@ -1,4 +1,4 @@
-use crate::entity::submission::Model as Submission;
+use crate::entities::submission::Model as Submission;
 use anyhow::Error;
 use async_trait::async_trait;
 
