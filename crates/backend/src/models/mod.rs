@@ -6,6 +6,10 @@ pub struct RunRequest {
     pub cases: u32,
     pub parallel: u32,
     pub timeout: u32,
+    #[serde(default)]
+    pub user_id: i32,
+    #[serde(default)]
+    pub problem_id: i32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -13,4 +17,5 @@ pub struct RunResponse {
     pub success: bool,
     pub result: String,
     pub error: Option<String>,
+    pub submission_id: Option<i32>,
 }

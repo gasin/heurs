@@ -30,11 +30,11 @@ enum Commands {
         timeout: u32,
 
         // ユーザーID
-        #[arg(short, long, default_value = "1")]
+        #[arg(short, long, default_value = "0")]
         user_id: i32,
 
         // 問題ID
-        #[arg(short, long, default_value = "1")]
+        #[arg(short, long, default_value = "0")]
         problem_id: i32,
 
         // データベースURL
