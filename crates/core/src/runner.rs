@@ -55,8 +55,6 @@ impl Runner for LocalRunner {
             let tx = tx.clone();
             let binary_path = binary_path.clone();
             let case_input_path = PathBuf::from(format!("workspace/inputs/case_{}.in", case_index));
-            let case_output_path =
-                PathBuf::from(format!("workspace/outputs/case_{}.out", case_index));
 
             pool.execute(move || {
                 let start_time = std::time::Instant::now();
@@ -109,13 +107,6 @@ impl Runner for LocalRunner {
 
                 let stdout = String::from_utf8_lossy(&output.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-
-                match std::fs::write(&case_output_path, &output.stdout) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        eprintln!("Error writing output file: {}", e);
-                    }
-                }
 
                 let success = output.status.success();
                 let score = if success { 100 } else { 0 };
