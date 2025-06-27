@@ -6,6 +6,9 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
 heurs-core = { path = "../core" }
+heurs-database = { path = "../database" }
+tokio = { version = "1.45.1", features = ["rt-multi-thread", "macros"] }
+anyhow = "1.0"
 
 [[bin]]
 name = "heurs"

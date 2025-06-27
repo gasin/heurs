@@ -1282,8 +1282,11 @@ dependencies = [
 name = "heurs-cli"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "heurs-core",
+ "heurs-database",
+ "tokio",
 ]
 
 [[package]]

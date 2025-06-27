@@ -1,5 +1,8 @@
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use heurs_core::{LocalRunner, Runner};
+use heurs_database::{DatabaseManager, SubmissionRepository};
+use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -25,10 +28,23 @@ enum Commands {
         // タイムアウト時間(s)
         #[arg(short, long, default_value = "10")]
         timeout: u32,
+
+        // ユーザーID
+        #[arg(short, long, default_value = "1")]
+        user_id: i32,
+
+        // 問題ID
+        #[arg(short, long, default_value = "1")]
+        problem_id: i32,
+
+        // データベースURL
+        #[arg(short, long, default_value = "sqlite://heurs.db")]
+        database_url: String,
     },
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
@@ -37,7 +53,21 @@ fn main() {
             cases,
             parallel,
             timeout,
+            user_id,
+            problem_id,
+            database_url,
         } => {
+            // データベース接続を確立
+            let db = DatabaseManager::connect(database_url).await?;
+
+            // ソースコードを読み込み
+            let source_code = fs::read_to_string(source_path)?;
+
+            // submissionをデータベースに保存
+            let submission =
+                SubmissionRepository::create(&db, *user_id, *problem_id, source_code).await?;
+            println!("Submission saved with ID: {}", submission.id);
+
             let runner = LocalRunner::new();
 
             match runner.execute(source_path, *cases, *parallel, *timeout) {
@@ -51,4 +81,6 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
