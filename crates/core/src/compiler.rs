@@ -6,7 +6,7 @@ pub trait Compiler {
         &self,
         source_path: &Path,
         output_path: &Path,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 }
 
 pub struct CppCompiler;
@@ -22,21 +22,19 @@ impl Compiler for CppCompiler {
         &self,
         source_path: &Path,
         output_path: &Path,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let output = Command::new("g++")
             .arg(source_path)
             .arg("-std=c++20")
             .arg("-O2")
             .arg("-o")
             .arg(output_path)
-            .output()?;
+            .output()
+            .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)?;
 
         if !output.status.success() {
-            return Err(format!(
-                "Compilation failed: {}",
-                String::from_utf8_lossy(&output.stderr)
-            )
-            .into());
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(Box::from(format!("Compilation failed: {}", stderr)));
         }
 
         Ok(())

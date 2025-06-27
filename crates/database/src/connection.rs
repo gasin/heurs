@@ -1,5 +1,5 @@
 use anyhow::Result;
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::Database;
 
 pub struct DatabaseManager;
 
@@ -10,3 +10,6 @@ impl DatabaseManager {
         Ok(db)
     }
 }
+
+// DatabaseConnection型を再エクスポート
+pub use sea_orm::DatabaseConnection;

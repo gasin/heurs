@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use heurs_core::{LocalRunner, Runner};
-use heurs_database::{DatabaseManager, SubmissionRepository};
+use heurs_database::{DatabaseManager, ExecutionResultRepository, SubmissionRepository};
 use std::fs;
 use std::path::PathBuf;
 
@@ -71,8 +71,35 @@ async fn main() -> Result<()> {
             let runner = LocalRunner::new();
 
             match runner.execute(source_path, *cases, *parallel, *timeout) {
-                Ok(_) => {
+                Ok(execution_results) => {
                     println!("実行に成功しました");
+
+                    // 実行結果をデータベースに保存
+                    for result in execution_results {
+                        dbg!(&result);
+                        match ExecutionResultRepository::create(
+                            &db,
+                            submission.id as i64,
+                            result.test_case_id as i64,
+                            result.success,
+                            result.stdout,
+                            result.stderr,
+                            result.score,
+                            result.execution_time_ms,
+                        )
+                        .await
+                        {
+                            Ok(_) => {
+                                println!("Test case {} result saved", result.test_case_id);
+                            }
+                            Err(e) => {
+                                eprintln!(
+                                    "Failed to save test case {} result: {}",
+                                    result.test_case_id, e
+                                );
+                            }
+                        }
+                    }
                 }
                 Err(e) => {
                     eprintln!("実行に失敗しました: {}", e);

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.8.4"
+axum = { version = "0.8.4", features = ["macros"] }
 heurs-core = { path = "../core" }
 heurs-database = { path = "../database" }
 serde = "1.0.219"
