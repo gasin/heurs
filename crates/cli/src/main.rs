@@ -125,7 +125,10 @@ async fn main() -> std::result::Result<(), CliError> {
                 println!("\nSuccessfully added {} test cases.", count);
             }
             TestCaseCommands::Clear {} => {
-                println!("Clear test cases");
+                println!("Clearing all test cases...");
+                let db = DatabaseManager::connect("sqlite://heurs.db").await?;
+                let result = TestCaseRepository::clear(&db).await?;
+                println!("Successfully deleted {} test cases.", result.rows_affected);
             }
         },
         Commands::Run {

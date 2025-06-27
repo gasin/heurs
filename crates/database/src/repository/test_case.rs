@@ -39,4 +39,8 @@ impl TestCaseRepository {
             .all(db)
             .await
     }
+
+    pub async fn clear(db: &DatabaseConnection) -> Result<DeleteResult, DbErr> {
+        test_cases::Entity::delete_many().exec(db).await
+    }
 }
