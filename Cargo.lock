@@ -1296,10 +1296,11 @@ dependencies = [
 name = "heurs-cli"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "clap",
  "heurs-core",
  "heurs-database",
+ "sea-orm",
+ "thiserror 1.0.69",
  "tokio",
 ]
 
@@ -1318,7 +1319,6 @@ dependencies = [
 name = "heurs-database"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-trait",
  "chrono",
  "sea-orm",

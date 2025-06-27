@@ -7,9 +7,11 @@ impl TestCaseRepository {
     pub async fn create(
         db: &DatabaseConnection,
         input: String,
+        filename: String,
     ) -> Result<test_cases::Model, DbErr> {
         let test_case = test_cases::ActiveModel {
             input: Set(input),
+            filename: Set(filename),
             created_at: Set(chrono::Utc::now()),
             ..Default::default()
         };

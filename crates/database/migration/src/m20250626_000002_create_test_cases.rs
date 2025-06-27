@@ -19,6 +19,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(TestCases::Input).text().not_null())
+                    .col(ColumnDef::new(TestCases::Filename).string().not_null())
                     .col(ColumnDef::new(TestCases::CreatedAt).timestamp().not_null())
                     .to_owned(),
             )
@@ -37,5 +38,6 @@ enum TestCases {
     Table,
     Id,
     Input,
+    Filename,
     CreatedAt,
 }
