@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use heurs_core::{LocalRunner, Runner, SQLiteTestCaseProvider};
+use heurs_core::{LocalRunner, Runner};
 use heurs_database::{
     DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
 };
@@ -151,11 +151,11 @@ async fn main() -> std::result::Result<(), CliError> {
                 SubmissionRepository::create(&db, user_id, problem_id, source_code.clone()).await?;
             println!("Submission saved with ID: {}", submission.id);
 
-            let provider = SQLiteTestCaseProvider::new(db.clone());
-            let runner = LocalRunner::new(Box::new(provider));
+            let test_cases = TestCaseRepository::find_limit(&db, cases as u64).await?;
 
+            let runner = LocalRunner::new();
             let execution_results = runner
-                .execute(&source_path, cases, parallel, timeout)
+                .execute(&source_path, parallel, test_cases, timeout)
                 .await
                 .map_err(CliError::Execution)?;
 

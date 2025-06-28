@@ -27,7 +27,22 @@ impl TestCaseRepository {
     }
 
     pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<test_cases::Model>, DbErr> {
-        test_cases::Entity::find().all(db).await
+        test_cases::Entity::find()
+            .order_by_asc(test_cases::Column::Filename)
+            .all(db)
+            .await
+    }
+
+    /// 先頭 `limit` 件のテストケースをファイル名昇順で取得します
+    pub async fn find_limit(
+        db: &DatabaseConnection,
+        limit: u64,
+    ) -> Result<Vec<test_cases::Model>, DbErr> {
+        test_cases::Entity::find()
+            .order_by_asc(test_cases::Column::Filename)
+            .limit(limit)
+            .all(db)
+            .await
     }
 
     pub async fn find_by_ids(

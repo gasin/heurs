@@ -1,7 +1,9 @@
 use crate::models::{RunRequest, RunResponse};
 use axum::{Json, Router, http::StatusCode, routing::post};
-use heurs_core::{LocalRunner, Runner, SQLiteTestCaseProvider};
-use heurs_database::{DatabaseManager, ExecutionResultRepository, SubmissionRepository};
+use heurs_core::{LocalRunner, Runner};
+use heurs_database::{
+    DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
+};
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -67,11 +69,14 @@ async fn run_code(Json(req): Json<RunRequest>) -> (StatusCode, Json<RunResponse>
         }
     }
 
-    let provider = SQLiteTestCaseProvider::new(db.clone());
-    let runner = LocalRunner::new(Box::new(provider));
+    let test_cases = TestCaseRepository::find_limit(&db, req.cases as u64)
+        .await
+        .unwrap();
+
+    let runner = LocalRunner::new();
 
     let result = runner
-        .execute(&tmp_path, req.cases, req.parallel, req.timeout)
+        .execute(&tmp_path, req.parallel, test_cases, req.timeout)
         .await;
 
     match result {

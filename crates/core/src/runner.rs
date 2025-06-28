@@ -1,6 +1,6 @@
 use crate::compiler::{Compiler, CppCompiler};
-use crate::test_case::TestCaseProvider;
 use async_trait::async_trait;
+use heurs_database::TestCaseModel;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -24,20 +24,18 @@ pub trait Runner {
     async fn execute(
         &self,
         source_path: &Path,
-        _cases: u32,
         parallel: u32,
+        test_cases: Vec<TestCaseModel>,
         timeout: u32,
     ) -> Result<Vec<ExecutionResult>, Box<dyn std::error::Error + Send + Sync>>;
 }
 
 /// ローカル実行器の実装
-pub struct LocalRunner {
-    test_case_provider: Box<dyn TestCaseProvider + Send + Sync>,
-}
+pub struct LocalRunner;
 
 impl LocalRunner {
-    pub fn new(test_case_provider: Box<dyn TestCaseProvider + Send + Sync>) -> Self {
-        LocalRunner { test_case_provider }
+    pub fn new() -> Self {
+        LocalRunner
     }
 }
 
@@ -46,8 +44,8 @@ impl Runner for LocalRunner {
     async fn execute(
         &self,
         source_path: &Path,
-        _cases: u32,
         parallel: u32,
+        test_cases: Vec<TestCaseModel>,
         _timeout: u32,
     ) -> Result<Vec<ExecutionResult>, Box<dyn std::error::Error + Send + Sync>> {
         let compiler = CppCompiler::new();
@@ -56,8 +54,6 @@ impl Runner for LocalRunner {
 
         let pool = ThreadPool::new(parallel as usize);
         let (tx, rx) = mpsc::channel();
-
-        let test_cases = self.test_case_provider.get_test_cases().await?;
 
         for test_case in test_cases {
             let tx = tx.clone();
