@@ -1,6 +1,6 @@
 use crate::models::{RunRequest, RunResponse};
 use axum::{Json, Router, http::StatusCode, routing::post};
-use heurs_core::{LocalRunner, Runner};
+use heurs_core::{LocalRunner, Runner, SQLiteTestCaseProvider};
 use heurs_database::{DatabaseManager, ExecutionResultRepository, SubmissionRepository};
 use std::fs::File;
 use std::io::Write;
@@ -67,8 +67,13 @@ async fn run_code(Json(req): Json<RunRequest>) -> (StatusCode, Json<RunResponse>
         }
     }
 
-    let runner = LocalRunner::new();
-    let result = runner.execute(&tmp_path, req.cases, req.parallel, req.timeout);
+    let provider = SQLiteTestCaseProvider::new(db.clone());
+    let runner = LocalRunner::new(Box::new(provider));
+
+    let result = runner
+        .execute(&tmp_path, req.cases, req.parallel, req.timeout)
+        .await;
+
     match result {
         Ok(execution_results) => {
             // 実行結果をデータベースに保存

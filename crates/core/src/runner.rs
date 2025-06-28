@@ -1,4 +1,6 @@
 use crate::compiler::{Compiler, CppCompiler};
+use crate::test_case::TestCaseProvider;
+use async_trait::async_trait;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -17,30 +19,34 @@ pub struct ExecutionResult {
 }
 
 /// コマンド実行器のトレイト
+#[async_trait]
 pub trait Runner {
-    fn execute(
+    async fn execute(
         &self,
         source_path: &Path,
-        cases: u32,
+        _cases: u32,
         parallel: u32,
         timeout: u32,
     ) -> Result<Vec<ExecutionResult>, Box<dyn std::error::Error + Send + Sync>>;
 }
 
 /// ローカル実行器の実装
-pub struct LocalRunner;
+pub struct LocalRunner {
+    test_case_provider: Box<dyn TestCaseProvider + Send + Sync>,
+}
 
 impl LocalRunner {
-    pub fn new() -> Self {
-        LocalRunner
+    pub fn new(test_case_provider: Box<dyn TestCaseProvider + Send + Sync>) -> Self {
+        LocalRunner { test_case_provider }
     }
 }
 
+#[async_trait]
 impl Runner for LocalRunner {
-    fn execute(
+    async fn execute(
         &self,
         source_path: &Path,
-        cases: u32,
+        _cases: u32,
         parallel: u32,
         _timeout: u32,
     ) -> Result<Vec<ExecutionResult>, Box<dyn std::error::Error + Send + Sync>> {
@@ -51,31 +57,14 @@ impl Runner for LocalRunner {
         let pool = ThreadPool::new(parallel as usize);
         let (tx, rx) = mpsc::channel();
 
-        for case_index in 0..cases {
+        let test_cases = self.test_case_provider.get_test_cases().await?;
+
+        for test_case in test_cases {
             let tx = tx.clone();
             let binary_path = binary_path.clone();
-            let case_input_path = PathBuf::from(format!("workspace/inputs/case_{}.in", case_index));
 
             pool.execute(move || {
-                let start_time = std::time::Instant::now();
-
-                // 入力ファイルを開いて標準入力に流し込む
-                let input = match std::fs::read(&case_input_path) {
-                    Ok(input) => input,
-                    Err(e) => {
-                        eprintln!("Error reading input file: {}", e);
-                        let result = ExecutionResult {
-                            test_case_id: case_index,
-                            success: false,
-                            stdout: String::new(),
-                            stderr: format!("Error reading input file: {}", e),
-                            execution_time_ms: 0,
-                            score: 0,
-                        };
-                        tx.send(result).unwrap();
-                        return;
-                    }
-                };
+                let input = test_case.input;
 
                 let mut child = match Command::new(&binary_path)
                     .stdin(Stdio::piped())
@@ -87,7 +76,7 @@ impl Runner for LocalRunner {
                     Err(e) => {
                         eprintln!("Error spawning process: {}", e);
                         let result = ExecutionResult {
-                            test_case_id: case_index,
+                            test_case_id: test_case.id as u32,
                             success: false,
                             stdout: String::new(),
                             stderr: format!("Error spawning process: {}", e),
@@ -99,11 +88,14 @@ impl Runner for LocalRunner {
                     }
                 };
 
-                child.stdin.as_mut().unwrap().write_all(&input).unwrap();
+                child
+                    .stdin
+                    .as_mut()
+                    .unwrap()
+                    .write_all(input.as_bytes())
+                    .unwrap();
 
                 let output = child.wait_with_output().unwrap();
-                let execution_time = start_time.elapsed();
-                let execution_time_ms = execution_time.as_millis() as u32;
 
                 let stdout = String::from_utf8_lossy(&output.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -112,11 +104,11 @@ impl Runner for LocalRunner {
                 let score = if success { 100 } else { 0 };
 
                 let result = ExecutionResult {
-                    test_case_id: case_index,
+                    test_case_id: test_case.id as u32,
                     success,
                     stdout,
                     stderr,
-                    execution_time_ms,
+                    execution_time_ms: 0,
                     score,
                 };
 
@@ -133,11 +125,5 @@ impl Runner for LocalRunner {
         }
 
         Ok(results)
-    }
-}
-
-impl Default for LocalRunner {
-    fn default() -> Self {
-        Self::new()
     }
 }

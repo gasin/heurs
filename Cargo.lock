@@ -1308,7 +1308,9 @@ dependencies = [
 name = "heurs-core"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "heurs-database",
+ "sea-orm",
  "serde",
  "serde_json",
  "threadpool",
