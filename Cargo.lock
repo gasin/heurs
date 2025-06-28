@@ -1311,6 +1311,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "heurs-database",
+ "regex",
  "sea-orm",
  "serde",
  "serde_json",

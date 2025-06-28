@@ -1,6 +1,7 @@
 use crate::compiler::{Compiler, CppCompiler};
 use async_trait::async_trait;
 use heurs_database::TestCaseModel;
+use regex::Regex;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -97,14 +98,26 @@ impl Runner for LocalRunner {
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
                 let success = output.status.success();
-                let score = if success { 100 } else { 0 };
+                let mut score = 0;
+                let mut execution_time_ms = 0;
+
+                let re = Regex::new(r"^@@HEURS_(\w+)=(\d+)$").unwrap();
+                for line in stderr.lines() {
+                    if let Some(cap) = re.captures(line.trim()) {
+                        match &cap[1] {
+                            "SCORE" => score = cap[2].parse::<i64>().unwrap(),
+                            "TIME_MS" => execution_time_ms = cap[2].parse::<u32>().unwrap(),
+                            _ => {}
+                        }
+                    }
+                }
 
                 let result = ExecutionResult {
                     test_case_id: test_case.id as u32,
                     success,
                     stdout,
                     stderr,
-                    execution_time_ms: 0,
+                    execution_time_ms,
                     score,
                 };
 
