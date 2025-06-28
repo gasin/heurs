@@ -1,9 +1,36 @@
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+use yew_router::prelude::*;
 
-#[function_component(App)]
-fn app() -> Html {
+// ---------- Routing ----------
+
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    Submit,
+    #[at("/submissions")]
+    Submissions,
+    #[at("/test_cases")]
+    TestCases,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::Submit => html! { <SubmitPage /> },
+        Route::Submissions => html! { <SubmissionsPage /> },
+        Route::TestCases => html! { <TestCasesPage /> },
+        Route::NotFound => html! { <h1>{"ページが見つかりません"}</h1> },
+    }
+}
+
+// ---------- Pages ----------
+
+#[function_component(SubmitPage)]
+fn submit_page() -> Html {
     let source_code = use_state(|| String::new());
     let cases = use_state(|| 10u32);
     let parallel = use_state(|| 1u32);
@@ -83,6 +110,7 @@ fn app() -> Html {
     html! {
         <div style="max-width:600px;margin:2em auto;padding:2em;border:1px solid #ccc;border-radius:8px;">
             <h1>{"Run API テスト"}</h1>
+            <NavBar />
             <form onsubmit={on_submit}>
                 <div style="margin-bottom:1em;">
                     <label>{"ソースコード"}</label><br/>
@@ -103,6 +131,75 @@ fn app() -> Html {
                 <pre>{ result.as_ref().unwrap_or(&"".to_string()) }</pre>
             </div>
         </div>
+    }
+}
+
+#[function_component(SubmissionsPage)]
+fn submissions_page() -> Html {
+    let submissions = vec![
+        (1, "main.cpp", 95),
+        (2, "solution.py", 100),
+        (3, "algo.rs", 87),
+    ];
+
+    html! {
+        <div style="max-width:600px;margin:2em auto;">
+            <h1>{"Submissions 一覧"}</h1>
+            <NavBar />
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr><th>{"ID"}</th><th>{"ファイル名"}</th><th>{"スコア"}</th></tr>
+                </thead>
+                <tbody>
+                    { for submissions.iter().cloned().map(|(id,f,score)| html! {
+                        <tr>
+                            <td style="border:1px solid #ccc;padding:4px;">{id}</td>
+                            <td style="border:1px solid #ccc;padding:4px;">{f}</td>
+                            <td style="border:1px solid #ccc;padding:4px;">{score}</td>
+                        </tr>
+                    }) }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+#[function_component(TestCasesPage)]
+fn test_cases_page() -> Html {
+    let cases = vec![(1, "case_1.in"), (2, "case_2.in"), (3, "case_3.in")];
+
+    html! {
+        <div style="max-width:600px;margin:2em auto;">
+            <h1>{"TestCases 一覧"}</h1>
+            <NavBar />
+            <ul>
+                { for cases.iter().cloned().map(|(id,name)| html! {<li>{format!("{} - {}", id, name)}</li>}) }
+            </ul>
+        </div>
+    }
+}
+
+// ---------- 共通ナビ ----------
+
+#[function_component(NavBar)]
+fn nav_bar() -> Html {
+    html! {
+        <nav style="margin-bottom:1em;">
+            <Link<Route> to={Route::Submit} >{"[Submit]"}</Link<Route>>{" | "}
+            <Link<Route> to={Route::Submissions} >{"[Submissions]"}</Link<Route>>{" | "}
+            <Link<Route> to={Route::TestCases} >{"[TestCases]"}</Link<Route>>
+        </nav>
+    }
+}
+
+// ---------- Root Component ----------
+
+#[function_component(App)]
+fn app() -> Html {
+    html! {
+        <BrowserRouter>
+            <Switch<Route> render={switch} />
+        </BrowserRouter>
     }
 }
 
