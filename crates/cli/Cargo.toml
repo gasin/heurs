@@ -10,6 +10,7 @@ heurs-database = { path = "../database" }
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "macros"] }
 thiserror = "1.0"
 sea-orm = { version = "1.1.12", features = ["runtime-tokio-rustls", "sqlx-sqlite"] }
+tabled = "0.20.0"
 
 [[bin]]
 name = "heurs"

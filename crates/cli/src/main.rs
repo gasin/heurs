@@ -7,7 +7,20 @@ use sea_orm;
 use std::error::Error as StdError;
 use std::fs;
 use std::path::PathBuf;
+use tabled::{Table, Tabled};
 use thiserror::Error;
+
+#[derive(Tabled)]
+struct Row {
+    #[tabled(rename = "Case ID")]
+    case_id: u32,
+    #[tabled(rename = "File Name")]
+    file_name: String,
+    #[tabled(rename = "Score")]
+    score: i64,
+    #[tabled(rename = "Time(ms)")]
+    time: u32,
+}
 
 #[derive(Debug, Error)]
 enum CliError {
@@ -153,32 +166,32 @@ async fn main() -> std::result::Result<(), CliError> {
 
             let test_cases = TestCaseRepository::find_limit(&db, cases as u64).await?;
 
+            // Runner 用にクローンを渡し、元の test_cases は後続の表示に再利用する
+            let runner_test_cases = test_cases.clone();
+
             let runner = LocalRunner::new();
             let execution_results = runner
-                .execute(&source_path, parallel, test_cases, timeout)
+                .execute(&source_path, parallel, runner_test_cases, timeout)
                 .await
                 .map_err(CliError::Execution)?;
 
             println!("実行に成功しました");
 
             // 実行結果をデータベースに保存
-            for result in execution_results {
-                dbg!(&result);
+            for result in &execution_results {
                 match ExecutionResultRepository::create(
                     &db,
                     submission.id as i64,
                     result.test_case_id as i64,
                     result.success,
-                    result.stdout,
-                    result.stderr,
+                    result.stdout.clone(),
+                    result.stderr.clone(),
                     result.score,
                     result.execution_time_ms,
                 )
                 .await
                 {
-                    Ok(_) => {
-                        println!("Test case {} result saved", result.test_case_id);
-                    }
+                    Ok(_) => {}
                     Err(e) => {
                         eprintln!(
                             "Failed to save test case {} result: {}",
@@ -187,6 +200,32 @@ async fn main() -> std::result::Result<(), CliError> {
                     }
                 }
             }
+
+            let mut rows: Vec<Row> = execution_results
+                .iter()
+                .map(|r| {
+                    let file_name = test_cases
+                        .iter()
+                        .find(|t| t.id == r.test_case_id as i32)
+                        .map(|t| t.filename.clone())
+                        .unwrap_or_else(|| "".to_string());
+
+                    Row {
+                        case_id: r.test_case_id,
+                        file_name,
+                        score: r.score,
+                        time: r.execution_time_ms,
+                    }
+                })
+                .collect();
+
+            // filename でソート
+            rows.sort_by(|a, b| a.file_name.cmp(&b.file_name));
+
+            println!("\n{}", Table::new(rows));
+
+            let total: i64 = execution_results.iter().map(|r| r.score).sum();
+            println!("Total score: {}", total);
         }
     }
 
