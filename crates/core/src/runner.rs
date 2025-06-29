@@ -19,6 +19,19 @@ pub struct ExecutionResult {
     pub score: i64,
 }
 
+impl From<&heurs_database::ExecutionResultModel> for ExecutionResult {
+    fn from(model: &heurs_database::ExecutionResultModel) -> Self {
+        ExecutionResult {
+            test_case_id: model.test_case_id as u32,
+            success: model.success,
+            stdout: model.stdout.clone(),
+            stderr: model.stderr.clone(),
+            execution_time_ms: model.execution_time_ms as u32,
+            score: model.score,
+        }
+    }
+}
+
 /// コマンド実行器のトレイト
 #[async_trait]
 pub trait Runner {

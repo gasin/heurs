@@ -1,39 +1,16 @@
 use clap::{Parser, Subcommand};
+use heurs_core::ExecutionResult;
 use heurs_core::{LocalRunner, Runner};
 use heurs_database::{
     DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
 };
 use sea_orm;
-use std::cmp::Ordering;
 use std::error::Error as StdError;
 use std::fs;
 use std::path::PathBuf;
-use tabled::{Table, Tabled};
 use thiserror::Error;
 
-#[derive(Tabled)]
-struct TestCaseRow {
-    #[tabled(rename = "Case ID")]
-    case_id: u32,
-    #[tabled(rename = "File Name")]
-    file_name: String,
-    #[tabled(rename = "Score")]
-    score: i64,
-    #[tabled(rename = "Time(ms)")]
-    time: u32,
-}
-
-#[derive(Tabled)]
-struct SubmissionRow {
-    #[tabled(rename = "Submission ID")]
-    submission_id: i32,
-    #[tabled(rename = "Avg Score")]
-    avg_score: f64,
-    #[tabled(rename = "Avg Time(ms)")]
-    avg_time: f64,
-    #[tabled(rename = "Cases")]
-    cases: usize,
-}
+mod view;
 
 #[derive(Debug, Error)]
 enum CliError {
@@ -240,31 +217,9 @@ async fn main() -> std::result::Result<(), CliError> {
                 }
             }
 
-            let mut rows: Vec<TestCaseRow> = execution_results
-                .iter()
-                .map(|r| {
-                    let file_name = test_cases
-                        .iter()
-                        .find(|t| t.id == r.test_case_id as i32)
-                        .map(|t| t.filename.clone())
-                        .unwrap_or_else(|| "".to_string());
+            view::render_execution_results(&execution_results, &test_cases);
 
-                    TestCaseRow {
-                        case_id: r.test_case_id,
-                        file_name,
-                        score: r.score,
-                        time: r.execution_time_ms,
-                    }
-                })
-                .collect();
-
-            // filename でソート
-            rows.sort_by(|a, b| a.file_name.cmp(&b.file_name));
-
-            println!("\n{}", Table::new(rows));
-
-            let total: i64 = execution_results.iter().map(|r| r.score).sum();
-            println!("Total score: {}", total);
+            view::render_submission_summary(&submission, &execution_results);
         }
         Commands::LeaderBoard {
             problem_id,
@@ -273,53 +228,10 @@ async fn main() -> std::result::Result<(), CliError> {
         } => {
             let db = DatabaseManager::connect(&database_url).await?;
 
-            // 1. 提出を取得
             let submissions = SubmissionRepository::find_by_problem_id(&db, problem_id).await?;
+            let execution_results = ExecutionResultRepository::find_all(&db).await?;
 
-            // 2. 各 submission の平均スコアを計算
-            let mut rows: Vec<SubmissionRow> = Vec::new();
-
-            for sub in &submissions {
-                let results =
-                    ExecutionResultRepository::find_by_submission_id(&db, sub.id as i64).await?;
-
-                let (sum, count) = results
-                    .iter()
-                    .fold((0i64, 0usize), |(s, c), r| (s + r.score, c + 1));
-                let avg_score = if count > 0 {
-                    sum as f64 / count as f64
-                } else {
-                    0.0
-                };
-
-                let avg_time = if count > 0 {
-                    results
-                        .iter()
-                        .map(|r| r.execution_time_ms as f64)
-                        .sum::<f64>()
-                        / count as f64
-                } else {
-                    0.0
-                };
-
-                rows.push(SubmissionRow {
-                    submission_id: sub.id,
-                    avg_score,
-                    avg_time,
-                    cases: count,
-                });
-            }
-
-            // 3. 平均スコア降順でソート
-            rows.sort_by(|a, b| {
-                b.avg_score
-                    .partial_cmp(&a.avg_score)
-                    .unwrap_or(Ordering::Equal)
-            });
-
-            rows = rows.into_iter().take(limit as usize).collect();
-
-            println!("\n{}", Table::new(rows));
+            view::render_leaderboard(&submissions, &execution_results, limit);
         }
         Commands::Submission(args) => match args.command {
             SubmissionCommands::Describe {
@@ -331,49 +243,17 @@ async fn main() -> std::result::Result<(), CliError> {
                 let execution_results =
                     ExecutionResultRepository::find_by_submission_id(&db, submission_id as i64)
                         .await?;
+                let execution_results = execution_results
+                    .iter()
+                    .map(|r| r.into())
+                    .collect::<Vec<ExecutionResult>>();
+
                 let submission =
                     SubmissionRepository::find_by_id(&db, submission_id as i32).await?;
                 let test_cases = TestCaseRepository::find_all(&db).await?;
 
-                let mut rows: Vec<TestCaseRow> = execution_results
-                    .iter()
-                    .map(|r| {
-                        let file_name = test_cases
-                            .iter()
-                            .find(|t| t.id == r.test_case_id as i32)
-                            .map(|t| t.filename.clone())
-                            .unwrap_or_else(|| "".to_string());
-
-                        TestCaseRow {
-                            case_id: r.test_case_id as u32,
-                            file_name,
-                            score: r.score,
-                            time: r.execution_time_ms as u32,
-                        }
-                    })
-                    .collect();
-
-                // filename でソート
-                rows.sort_by(|a, b| a.file_name.cmp(&b.file_name));
-
-                println!("\n{}", Table::new(rows));
-
-                println!("Submission ID: {}", submission_id);
-                println!("Timestamp: {}", submission.unwrap().timestamp);
-
-                println!(
-                    "Average score: {}",
-                    execution_results.iter().map(|r| r.score).sum::<i64>() as f64
-                        / execution_results.len() as f64
-                );
-                println!(
-                    "Average time: {}",
-                    execution_results
-                        .iter()
-                        .map(|r| r.execution_time_ms as f64)
-                        .sum::<f64>()
-                        / execution_results.len() as f64
-                );
+                view::render_execution_results(&execution_results, &test_cases);
+                view::render_submission_summary(&submission.unwrap(), &execution_results);
             }
         },
     }
