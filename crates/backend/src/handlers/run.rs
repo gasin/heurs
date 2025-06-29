@@ -30,6 +30,8 @@ async fn run_code(Json(req): Json<RunRequest>) -> (StatusCode, Json<RunResponse>
         }
     };
 
+    let config_path = PathBuf::from("heurs.toml");
+
     // submissionをデータベースに保存
     let submission =
         match SubmissionRepository::create(&db, req.problem_id, req.source_code.clone()).await {
@@ -70,7 +72,13 @@ async fn run_code(Json(req): Json<RunRequest>) -> (StatusCode, Json<RunResponse>
     let runner = LocalRunner::new();
 
     let result = runner
-        .execute(&tmp_path, req.parallel, test_cases, req.timeout)
+        .execute(
+            &tmp_path,
+            &config_path,
+            req.parallel,
+            test_cases,
+            req.timeout,
+        )
         .await;
 
     match result {

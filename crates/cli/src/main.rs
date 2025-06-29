@@ -53,6 +53,10 @@ enum Commands {
         #[arg(short, long, default_value = "10")]
         timeout: u32,
 
+        // 設定ファイルパス
+        #[arg(long, default_value = "heurs.toml")]
+        config: PathBuf,
+
         // 問題ID
         #[arg(short, long, default_value = "0")]
         problem_id: i32,
@@ -166,6 +170,7 @@ async fn main() -> std::result::Result<(), CliError> {
             cases,
             parallel,
             timeout,
+            config,
             problem_id,
             database_url,
         } => {
@@ -187,7 +192,7 @@ async fn main() -> std::result::Result<(), CliError> {
 
             let runner = LocalRunner::new();
             let execution_results = runner
-                .execute(&source_path, parallel, runner_test_cases, timeout)
+                .execute(&source_path, &config, parallel, runner_test_cases, timeout)
                 .await
                 .map_err(CliError::Execution)?;
 

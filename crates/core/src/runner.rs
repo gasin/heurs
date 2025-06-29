@@ -1,12 +1,13 @@
-use crate::compiler::{Compiler, CppCompiler};
 use async_trait::async_trait;
 use heurs_database::TestCaseModel;
 use regex::Regex;
+use std::fs;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use threadpool::ThreadPool;
+use toml::Value;
 
 /// 実行結果を表す構造体
 #[derive(Debug, Clone)]
@@ -38,6 +39,7 @@ pub trait Runner {
     async fn execute(
         &self,
         source_path: &Path,
+        config_path: &Path,
         parallel: u32,
         test_cases: Vec<TestCaseModel>,
         timeout: u32,
@@ -58,25 +60,49 @@ impl Runner for LocalRunner {
     async fn execute(
         &self,
         source_path: &Path,
+        config_path: &Path,
         parallel: u32,
         test_cases: Vec<TestCaseModel>,
         _timeout: u32,
     ) -> Result<Vec<ExecutionResult>, Box<dyn std::error::Error + Send + Sync>> {
-        let compiler = CppCompiler::new();
-        let binary_path = PathBuf::from("./a.out");
-        compiler.compile(source_path, &binary_path)?;
+        // heurs.toml をパース
+        let config_str = fs::read_to_string(config_path)?;
+        let config: Value = toml::from_str(&config_str)?;
+
+        let compile_cmd = config
+            .get("compile_cmd")
+            .and_then(|v| v.as_str())
+            .ok_or("compile_cmd not found")?
+            .to_string();
+
+        let exec_cmd = config
+            .get("exec_cmd")
+            .and_then(|v| v.as_str())
+            .ok_or("exec_cmd not found")?
+            .to_string();
+
+        // プレースホルダ置換
+        let compile_cmd = compile_cmd.replace("{{src}}", &source_path.display().to_string());
+
+        // コンパイルを実行
+        let status = Command::new("sh").arg("-c").arg(compile_cmd).status()?;
+        if !status.success() {
+            return Err("Compilation failed".into());
+        }
 
         let pool = ThreadPool::new(parallel as usize);
         let (tx, rx) = mpsc::channel();
 
         for test_case in test_cases {
             let tx = tx.clone();
-            let binary_path = binary_path.clone();
+            let exec_cmd = exec_cmd.clone();
 
             pool.execute(move || {
                 let input = test_case.input;
 
-                let mut child = match Command::new(&binary_path)
+                let mut child = match Command::new("sh")
+                    .arg("-c")
+                    .arg(&exec_cmd)
                     .stdin(Stdio::piped())
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
