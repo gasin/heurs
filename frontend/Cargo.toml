@@ -10,3 +10,5 @@ gloo-net = "0.4"
 serde_json = "1.0"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["HtmlTextAreaElement", "HtmlInputElement"] }
+serde = { version = "1", features = ["derive"] }
+chrono = { version = "0.4", default-features = false, features = ["serde"] }

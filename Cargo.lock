@@ -1292,6 +1292,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "chrono",
  "heurs-core",
  "heurs-database",
  "serde",
@@ -1340,7 +1341,9 @@ dependencies = [
 name = "heurs-front"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "gloo-net 0.4.0",
+ "serde",
  "serde_json",
  "wasm-bindgen-futures",
  "web-sys",
