@@ -27,8 +27,6 @@ struct LeaderBoardRow {
 struct SubmissionRow {
     #[tabled(rename = "Submission ID")]
     submission_id: i32,
-    #[tabled(rename = "User ID")]
-    user_id: i32,
     #[tabled(rename = "Avg Score")]
     avg_score: f64,
     #[tabled(rename = "Cases")]
@@ -75,10 +73,6 @@ enum Commands {
         // タイムアウト時間(s)
         #[arg(short, long, default_value = "10")]
         timeout: u32,
-
-        // ユーザーID
-        #[arg(short, long, default_value = "0")]
-        user_id: i32,
 
         // 問題ID
         #[arg(short, long, default_value = "0")]
@@ -174,7 +168,6 @@ async fn main() -> std::result::Result<(), CliError> {
             cases,
             parallel,
             timeout,
-            user_id,
             problem_id,
             database_url,
         } => {
@@ -186,7 +179,7 @@ async fn main() -> std::result::Result<(), CliError> {
 
             // submissionをデータベースに保存
             let submission =
-                SubmissionRepository::create(&db, user_id, problem_id, source_code.clone()).await?;
+                SubmissionRepository::create(&db, problem_id, source_code.clone()).await?;
             println!("Submission saved with ID: {}", submission.id);
 
             let test_cases = TestCaseRepository::find_limit(&db, cases as u64).await?;
@@ -280,7 +273,6 @@ async fn main() -> std::result::Result<(), CliError> {
 
                 rows.push(SubmissionRow {
                     submission_id: sub.id,
-                    user_id: sub.user_id,
                     avg_score: avg,
                     cases: count,
                 });

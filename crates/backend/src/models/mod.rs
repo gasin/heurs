@@ -7,8 +7,6 @@ pub struct RunRequest {
     pub parallel: u32,
     pub timeout: u32,
     #[serde(default)]
-    pub user_id: i32,
-    #[serde(default)]
     pub problem_id: i32,
 }
 

@@ -18,7 +18,6 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Submissions::UserId).integer().not_null())
                     .col(ColumnDef::new(Submissions::ProblemId).integer().not_null())
                     .col(ColumnDef::new(Submissions::SourceCode).text().not_null())
                     .col(
@@ -42,7 +41,6 @@ impl MigrationTrait for Migration {
 enum Submissions {
     Table,
     Id,
-    UserId,
     ProblemId,
     SourceCode,
     Timestamp,

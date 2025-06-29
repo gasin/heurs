@@ -31,27 +31,21 @@ async fn run_code(Json(req): Json<RunRequest>) -> (StatusCode, Json<RunResponse>
     };
 
     // submissionをデータベースに保存
-    let submission = match SubmissionRepository::create(
-        &db,
-        req.user_id,
-        req.problem_id,
-        req.source_code.clone(),
-    )
-    .await
-    {
-        Ok(submission) => submission,
-        Err(e) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(RunResponse {
-                    success: false,
-                    result: String::new(),
-                    error: Some(format!("Submission保存エラー: {}", e)),
-                    submission_id: None,
-                }),
-            );
-        }
-    };
+    let submission =
+        match SubmissionRepository::create(&db, req.problem_id, req.source_code.clone()).await {
+            Ok(submission) => submission,
+            Err(e) => {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(RunResponse {
+                        success: false,
+                        result: String::new(),
+                        error: Some(format!("Submission保存エラー: {}", e)),
+                        submission_id: None,
+                    }),
+                );
+            }
+        };
 
     let tmp_path = PathBuf::from("/tmp/source.cpp");
     match File::create(&tmp_path).and_then(|mut f| f.write_all(req.source_code.as_bytes())) {
