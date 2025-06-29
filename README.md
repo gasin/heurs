@@ -45,7 +45,6 @@ heurs run <SOURCE_PATH> \
   --cases <N> \            # 使用するテストケース数 (既定 10)
   --parallel <N> \         # 並列実行スレッド数 (既定 1)
   --timeout <SEC> \        # タイムアウト秒数 (既定 10)
-  --user-id <ID> \         # ユーザ ID (既定 0)
   --problem-id <ID> \      # 問題 ID (既定 0)
   --database-url <URL>      # DB URL (既定 "sqlite://heurs.db")
 ```
@@ -53,7 +52,7 @@ heurs run <SOURCE_PATH> \
 例:
 
 ```bash
-heurs run submission.cpp --cases 20 --parallel 4 --user-id 42 --problem-id 3
+heurs run submission.cpp --cases 20 --parallel 4 --problem-id 3
 ```
 
 ### TestCase サブコマンド
@@ -79,3 +78,15 @@ heurs testcase clear
 ---
 
 > **備考**: CLI は内部で README 前章のマーカー (`@@HEURS_SCORE=...` など) をパースし、`execution_results` テーブルにスコアと実行時間を保存します。 
+
+### LeaderBoard
+指定問題の提出を平均スコア順に並べて上位 N 件を表示します。
+```bash
+heurs leaderboard --problem-id <ID> --limit 20
+```
+
+### Submission describe
+任意の submission の各テストケース詳細を表示します。
+```bash
+heurs submission describe --submission-id <ID>
+```
