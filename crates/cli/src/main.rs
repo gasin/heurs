@@ -12,7 +12,7 @@ use tabled::{Table, Tabled};
 use thiserror::Error;
 
 #[derive(Tabled)]
-struct LeaderBoardRow {
+struct TestCaseRow {
     #[tabled(rename = "Case ID")]
     case_id: u32,
     #[tabled(rename = "File Name")]
@@ -29,6 +29,8 @@ struct SubmissionRow {
     submission_id: i32,
     #[tabled(rename = "Avg Score")]
     avg_score: f64,
+    #[tabled(rename = "Avg Time(ms)")]
+    avg_time: f64,
     #[tabled(rename = "Cases")]
     cases: usize,
 }
@@ -219,7 +221,7 @@ async fn main() -> std::result::Result<(), CliError> {
                 }
             }
 
-            let mut rows: Vec<LeaderBoardRow> = execution_results
+            let mut rows: Vec<TestCaseRow> = execution_results
                 .iter()
                 .map(|r| {
                     let file_name = test_cases
@@ -228,7 +230,7 @@ async fn main() -> std::result::Result<(), CliError> {
                         .map(|t| t.filename.clone())
                         .unwrap_or_else(|| "".to_string());
 
-                    LeaderBoardRow {
+                    TestCaseRow {
                         case_id: r.test_case_id,
                         file_name,
                         score: r.score,
@@ -265,15 +267,26 @@ async fn main() -> std::result::Result<(), CliError> {
                 let (sum, count) = results
                     .iter()
                     .fold((0i64, 0usize), |(s, c), r| (s + r.score, c + 1));
-                let avg = if count > 0 {
+                let avg_score = if count > 0 {
                     sum as f64 / count as f64
+                } else {
+                    0.0
+                };
+
+                let avg_time = if count > 0 {
+                    results
+                        .iter()
+                        .map(|r| r.execution_time_ms as f64)
+                        .sum::<f64>()
+                        / count as f64
                 } else {
                     0.0
                 };
 
                 rows.push(SubmissionRow {
                     submission_id: sub.id,
-                    avg_score: avg,
+                    avg_score,
+                    avg_time,
                     cases: count,
                 });
             }
