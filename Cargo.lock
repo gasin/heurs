@@ -1046,7 +1046,7 @@ dependencies = [
  "gloo-file",
  "gloo-history",
  "gloo-net 0.5.0",
- "gloo-render",
+ "gloo-render 0.2.0",
  "gloo-storage",
  "gloo-timers",
  "gloo-utils",
@@ -1155,6 +1155,16 @@ dependencies = [
  "thiserror 1.0.69",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "gloo-render"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2fd9306aef67cfd4449823aadcd14e3958e0800aa2183955a309112a84ec7764"
+dependencies = [
+ "wasm-bindgen",
  "web-sys",
 ]
 
@@ -1343,6 +1353,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "gloo-net 0.4.0",
+ "gloo-render 0.1.1",
  "serde",
  "serde_json",
  "wasm-bindgen",
