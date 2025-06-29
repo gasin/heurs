@@ -4,6 +4,7 @@ use heurs_database::{
     DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
 };
 use sea_orm;
+use std::cmp::Ordering;
 use std::error::Error as StdError;
 use std::fs;
 use std::path::PathBuf;
@@ -11,7 +12,7 @@ use tabled::{Table, Tabled};
 use thiserror::Error;
 
 #[derive(Tabled)]
-struct Row {
+struct LeaderBoardRow {
     #[tabled(rename = "Case ID")]
     case_id: u32,
     #[tabled(rename = "File Name")]
@@ -20,6 +21,18 @@ struct Row {
     score: i64,
     #[tabled(rename = "Time(ms)")]
     time: u32,
+}
+
+#[derive(Tabled)]
+struct SubmissionRow {
+    #[tabled(rename = "Submission ID")]
+    submission_id: i32,
+    #[tabled(rename = "User ID")]
+    user_id: i32,
+    #[tabled(rename = "Avg Score")]
+    avg_score: f64,
+    #[tabled(rename = "Cases")]
+    cases: usize,
 }
 
 #[derive(Debug, Error)]
@@ -76,6 +89,18 @@ enum Commands {
         database_url: String,
     },
     TestCase(TestCaseArgs),
+    LeaderBoard {
+        #[arg(short, long, default_value = "0")]
+        problem_id: i32,
+
+        // データベースURL
+        #[arg(short, long, default_value = "sqlite://heurs.db")]
+        database_url: String,
+
+        // 何件表示するか
+        #[arg(short, long, default_value = "10")]
+        limit: u32,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -201,7 +226,7 @@ async fn main() -> std::result::Result<(), CliError> {
                 }
             }
 
-            let mut rows: Vec<Row> = execution_results
+            let mut rows: Vec<LeaderBoardRow> = execution_results
                 .iter()
                 .map(|r| {
                     let file_name = test_cases
@@ -210,7 +235,7 @@ async fn main() -> std::result::Result<(), CliError> {
                         .map(|t| t.filename.clone())
                         .unwrap_or_else(|| "".to_string());
 
-                    Row {
+                    LeaderBoardRow {
                         case_id: r.test_case_id,
                         file_name,
                         score: r.score,
@@ -226,6 +251,51 @@ async fn main() -> std::result::Result<(), CliError> {
 
             let total: i64 = execution_results.iter().map(|r| r.score).sum();
             println!("Total score: {}", total);
+        }
+        Commands::LeaderBoard {
+            problem_id,
+            database_url,
+            limit,
+        } => {
+            let db = DatabaseManager::connect(&database_url).await?;
+
+            // 1. 提出を取得
+            let submissions = SubmissionRepository::find_by_problem_id(&db, problem_id).await?;
+
+            // 2. 各 submission の平均スコアを計算
+            let mut rows: Vec<SubmissionRow> = Vec::new();
+
+            for sub in &submissions {
+                let results =
+                    ExecutionResultRepository::find_by_submission_id(&db, sub.id as i64).await?;
+
+                let (sum, count) = results
+                    .iter()
+                    .fold((0i64, 0usize), |(s, c), r| (s + r.score, c + 1));
+                let avg = if count > 0 {
+                    sum as f64 / count as f64
+                } else {
+                    0.0
+                };
+
+                rows.push(SubmissionRow {
+                    submission_id: sub.id,
+                    user_id: sub.user_id,
+                    avg_score: avg,
+                    cases: count,
+                });
+            }
+
+            // 3. 平均スコア降順でソート
+            rows.sort_by(|a, b| {
+                b.avg_score
+                    .partial_cmp(&a.avg_score)
+                    .unwrap_or(Ordering::Equal)
+            });
+
+            rows = rows.into_iter().take(limit as usize).collect();
+
+            println!("\n{}", Table::new(rows));
         }
     }
 
