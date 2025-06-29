@@ -97,6 +97,25 @@ enum Commands {
         #[arg(short, long, default_value = "10")]
         limit: u32,
     },
+    Submission(SubmissionArgs),
+}
+
+#[derive(Parser, Debug)]
+struct SubmissionArgs {
+    #[command(subcommand)]
+    command: SubmissionCommands,
+}
+
+#[derive(Subcommand, Debug)]
+enum SubmissionCommands {
+    Describe {
+        // データベースURL
+        #[arg(short, long, default_value = "sqlite://heurs.db")]
+        database_url: String,
+
+        #[arg(short, long)]
+        submission_id: i32,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -302,6 +321,61 @@ async fn main() -> std::result::Result<(), CliError> {
 
             println!("\n{}", Table::new(rows));
         }
+        Commands::Submission(args) => match args.command {
+            SubmissionCommands::Describe {
+                database_url,
+                submission_id,
+            } => {
+                let db = DatabaseManager::connect(&database_url).await?;
+
+                let execution_results =
+                    ExecutionResultRepository::find_by_submission_id(&db, submission_id as i64)
+                        .await?;
+                let submission =
+                    SubmissionRepository::find_by_id(&db, submission_id as i32).await?;
+                let test_cases = TestCaseRepository::find_all(&db).await?;
+
+                let mut rows: Vec<TestCaseRow> = execution_results
+                    .iter()
+                    .map(|r| {
+                        let file_name = test_cases
+                            .iter()
+                            .find(|t| t.id == r.test_case_id as i32)
+                            .map(|t| t.filename.clone())
+                            .unwrap_or_else(|| "".to_string());
+
+                        TestCaseRow {
+                            case_id: r.test_case_id as u32,
+                            file_name,
+                            score: r.score,
+                            time: r.execution_time_ms as u32,
+                        }
+                    })
+                    .collect();
+
+                // filename でソート
+                rows.sort_by(|a, b| a.file_name.cmp(&b.file_name));
+
+                println!("\n{}", Table::new(rows));
+
+                println!("Submission ID: {}", submission_id);
+                println!("Timestamp: {}", submission.unwrap().timestamp);
+
+                println!(
+                    "Average score: {}",
+                    execution_results.iter().map(|r| r.score).sum::<i64>() as f64
+                        / execution_results.len() as f64
+                );
+                println!(
+                    "Average time: {}",
+                    execution_results
+                        .iter()
+                        .map(|r| r.execution_time_ms as f64)
+                        .sum::<f64>()
+                        / execution_results.len() as f64
+                );
+            }
+        },
     }
 
     Ok(())
