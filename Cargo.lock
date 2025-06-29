@@ -1345,6 +1345,7 @@ dependencies = [
  "gloo-net 0.4.0",
  "serde",
  "serde_json",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
  "yew",

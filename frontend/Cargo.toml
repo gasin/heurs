@@ -8,7 +8,13 @@ yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
 yew-router = { git = "https://github.com/yewstack/yew/" }
 gloo-net = "0.4"
 serde_json = "1.0"
+wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["HtmlTextAreaElement", "HtmlInputElement"] }
+web-sys = { version = "0.3", features = [
+    "HtmlTextAreaElement",
+    "HtmlInputElement",
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d"
+] }
 serde = { version = "1", features = ["derive"] }
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
