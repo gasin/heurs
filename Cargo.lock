@@ -235,7 +235,7 @@ dependencies = [
  "futures-core",
  "futures-io",
  "futures-lite",
- "gloo-timers",
+ "gloo-timers 0.3.0",
  "kv-log-macro",
  "log",
  "memchr",
@@ -1048,7 +1048,7 @@ dependencies = [
  "gloo-net 0.5.0",
  "gloo-render 0.2.0",
  "gloo-storage",
- "gloo-timers",
+ "gloo-timers 0.3.0",
  "gloo-utils",
  "gloo-worker",
 ]
@@ -1191,6 +1191,16 @@ dependencies = [
  "thiserror 1.0.69",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "gloo-timers"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b995a66bb87bebce9a0f4a95aed01daca4872c050bfcb21653361c03bc35e5c"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -1354,6 +1364,7 @@ dependencies = [
  "chrono",
  "gloo-net 0.4.0",
  "gloo-render 0.1.1",
+ "gloo-timers 0.2.6",
  "serde",
  "serde_json",
  "wasm-bindgen",
