@@ -3,6 +3,11 @@ addresses = ["127.0.0.1"]
 
 port = 8000
 
+# Proxy /api requests to our backend server.
+[[proxy]]
+rewrite = "/api/"
+backend = "http://localhost:3000/api/"
+
 # Add these lines to include highlight.js assets
 [[head]]
 html = """

@@ -30,10 +30,7 @@ pub fn submissions() -> Html {
         let error = error.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
-                match Request::get("http://localhost:3000/api/submissions")
-                    .send()
-                    .await
-                {
+                match Request::get("/api/submissions").send().await {
                     Ok(response) if response.ok() => {
                         match response.json::<SubmissionsListResponse>().await {
                             Ok(resp) => submission_metas.set(resp.submissions),
@@ -55,7 +52,7 @@ pub fn submissions() -> Html {
             let selected_submission = selected_submission.clone();
             let error = error.clone();
             spawn_local(async move {
-                let url = format!("http://localhost:3000/api/submissions/{}", id);
+                let url = format!("/api/submissions/{}", id);
                 match Request::get(&url).send().await {
                     Ok(response) if response.ok() => {
                         match response.json::<SubmissionDetailResponse>().await {

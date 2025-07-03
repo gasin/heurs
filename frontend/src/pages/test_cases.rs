@@ -15,10 +15,7 @@ pub fn test_cases_page() -> Html {
         use_effect_with((), move |_| {
             let metas = metas.clone();
             spawn_local(async move {
-                if let Ok(resp) = Request::get("http://localhost:3000/api/test_cases")
-                    .send()
-                    .await
-                {
+                if let Ok(resp) = Request::get("/api/test_cases").send().await {
                     if let Ok(json) = resp.json::<TestCasesResponse>().await {
                         metas.set(json.test_cases);
                     }
@@ -33,7 +30,7 @@ pub fn test_cases_page() -> Html {
         Callback::from(move |id: i32| {
             let selected = selected.clone();
             spawn_local(async move {
-                let url = format!("http://localhost:3000/api/test_cases/{}", id);
+                let url = format!("/api/test_cases/{}", id);
                 if let Ok(resp) = Request::get(&url).send().await {
                     if let Ok(json) = resp.json::<TestCaseResponse>().await {
                         selected.set(Some(json.test_case));

@@ -57,7 +57,7 @@ pub fn submit_page() -> Html {
                     "parallel": parallel,
                     "timeout": 10
                 });
-                let resp = Request::post("http://localhost:3000/api/run")
+                let resp = Request::post("/api/run")
                     .header("Content-Type", "application/json")
                     .body(body.to_string())
                     .expect("body作成失敗")
