@@ -25,7 +25,6 @@ pub struct ExecutionResultMeta {
 #[derive(Serialize, Deserialize)]
 pub struct Submission {
     pub id: i32,
-    pub problem_id: i32,
     pub source_code: String,
     pub number_of_test_cases: i32,
     pub average_score: f64,

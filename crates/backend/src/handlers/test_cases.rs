@@ -10,8 +10,6 @@ use heurs_database::{DatabaseManager, TestCaseModel, TestCaseRepository};
 #[derive(Debug, serde::Deserialize)]
 struct ListParams {
     #[serde(default)]
-    problem_id: Option<i32>,
-    #[serde(default)]
     offset: Option<u64>,
     #[serde(default)]
     limit: Option<u64>,

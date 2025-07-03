@@ -57,19 +57,12 @@ enum Commands {
         #[arg(long, default_value = "heurs.toml")]
         config: PathBuf,
 
-        // 問題ID
-        #[arg(short, long, default_value = "0")]
-        problem_id: i32,
-
         // データベースURL
         #[arg(short, long, default_value = "sqlite://heurs.db")]
         database_url: String,
     },
     TestCase(TestCaseArgs),
     LeaderBoard {
-        #[arg(short, long, default_value = "0")]
-        problem_id: i32,
-
         // データベースURL
         #[arg(short, long, default_value = "sqlite://heurs.db")]
         database_url: String,
@@ -113,9 +106,7 @@ enum TestCaseCommands {
 
 #[derive(Parser, Debug)]
 struct AddArgs {
-    #[arg(long, default_value_t = 0)]
-    problem_id: i64,
-    #[arg(long)]
+    #[arg(short, long)]
     input_path: PathBuf,
 }
 
@@ -127,8 +118,7 @@ async fn main() -> std::result::Result<(), CliError> {
         Commands::TestCase(args) => match args.command {
             TestCaseCommands::Add(add_args) => {
                 println!(
-                    "Adding test cases for problem_id {} from path: {}",
-                    add_args.problem_id,
+                    "Adding test cases from path: {}",
                     add_args.input_path.display()
                 );
 
@@ -171,7 +161,6 @@ async fn main() -> std::result::Result<(), CliError> {
             parallel,
             timeout,
             config,
-            problem_id,
             database_url,
         } => {
             // データベース接続を確立
@@ -181,8 +170,7 @@ async fn main() -> std::result::Result<(), CliError> {
             let source_code = fs::read_to_string(&source_path)?;
 
             // submissionをデータベースに保存
-            let submission =
-                SubmissionRepository::create(&db, problem_id, source_code.clone()).await?;
+            let submission = SubmissionRepository::create(&db, source_code.clone()).await?;
             println!("Submission saved with ID: {}", submission.id);
 
             let test_cases = TestCaseRepository::find_limit(&db, cases as u64).await?;
@@ -227,13 +215,12 @@ async fn main() -> std::result::Result<(), CliError> {
             view::render_submission_summary(&submission, &execution_results);
         }
         Commands::LeaderBoard {
-            problem_id,
             database_url,
             limit,
         } => {
             let db = DatabaseManager::connect(&database_url).await?;
 
-            let submissions = SubmissionRepository::find_by_problem_id(&db, problem_id).await?;
+            let submissions = SubmissionRepository::find_all(&db).await?;
             let execution_results = ExecutionResultRepository::find_all(&db).await?;
 
             view::render_leaderboard(&submissions, &execution_results, limit);

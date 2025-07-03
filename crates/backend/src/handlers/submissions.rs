@@ -96,7 +96,6 @@ async fn get_submission(Path(id): Path<i32>) -> (StatusCode, Json<SubmissionResp
                 Json(SubmissionResponse {
                     submission: Submission {
                         id: 0,
-                        problem_id: 0,
                         source_code: String::new(),
                         number_of_test_cases: 0,
                         average_score: 0.0,
@@ -119,7 +118,6 @@ async fn get_submission(Path(id): Path<i32>) -> (StatusCode, Json<SubmissionResp
             Json(SubmissionResponse {
                 submission: Submission {
                     id: 0,
-                    problem_id: 0,
                     source_code: String::new(),
                     number_of_test_cases: 0,
                     average_score: 0.0,
@@ -141,7 +139,6 @@ async fn get_submission(Path(id): Path<i32>) -> (StatusCode, Json<SubmissionResp
     let result = SubmissionResponse {
         submission: Submission {
             id: submission.id,
-            problem_id: submission.problem_id,
             source_code: submission.source_code,
             number_of_test_cases: execution_results.len() as i32,
             average_score: execution_results.iter().map(|r| r.score).sum::<i64>() as f64

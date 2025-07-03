@@ -6,11 +6,9 @@ pub struct SubmissionRepository;
 impl SubmissionRepository {
     pub async fn create(
         db: &DatabaseConnection,
-        problem_id: i32,
         source_code: String,
     ) -> Result<submissions::Model, DbErr> {
         let submission = submissions::ActiveModel {
-            problem_id: Set(problem_id),
             source_code: Set(source_code),
             timestamp: Set(chrono::Utc::now()),
             ..Default::default()
@@ -28,15 +26,5 @@ impl SubmissionRepository {
 
     pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<submissions::Model>, DbErr> {
         submissions::Entity::find().all(db).await
-    }
-
-    pub async fn find_by_problem_id(
-        db: &DatabaseConnection,
-        problem_id: i32,
-    ) -> Result<Vec<submissions::Model>, DbErr> {
-        submissions::Entity::find()
-            .filter(submissions::Column::ProblemId.eq(problem_id))
-            .all(db)
-            .await
     }
 }
