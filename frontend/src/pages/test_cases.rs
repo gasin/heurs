@@ -1,3 +1,4 @@
+use crate::components::item_list_panel::ItemListPanel;
 use crate::types::{TestCase, TestCaseMeta, TestCaseResponse, TestCasesResponse};
 use gloo_net::http::Request;
 use wasm_bindgen_futures::spawn_local;
@@ -42,46 +43,25 @@ pub fn test_cases_page() -> Html {
         })
     };
 
-    let list_panel = html! {
-        <div style="width:45%;">
-            <h2>{"一覧"}</h2>
-            <div style="max-height:400px; overflow-y:auto; border:1px solid #ccc;">
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr>
-                            <th style="border-bottom:1px solid #ccc;padding:4px;text-align:left;">{"ID"}</th>
-                            <th style="border-bottom:1px solid #ccc;padding:4px;text-align:left;">{"ファイル名"}</th>
-                            <th style="border-bottom:1px solid #ccc;padding:4px;text-align:left;">{"作成日時"}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        { for metas.iter().cloned().map(|m| {
-                            let id = m.id;
-                            let onclick = {
-                                let on_select = on_select.clone();
-                                Callback::from(move |_| on_select.emit(id))
-                            };
-                            let selected_id = selected.as_ref().map(|s| s.id);
-                            let is_selected = selected_id == Some(m.id);
-                            let base_style = "cursor:pointer; transition:background-color 0.2s ease;";
-                            let style = if is_selected {
-                                format!("{} {}", base_style, "background-color:#d0e0ff;")
-                            } else {
-                                base_style.to_string()
-                            };
+    let render_item_row = Callback::from(|meta: TestCaseMeta| {
+        html! {
+            <>
+                <td style="padding:4px;">{meta.id}</td>
+                <td style="padding:4px;">{meta.filename}</td>
+                <td style="padding:4px;">{meta.created_at}</td>
+            </>
+        }
+    });
 
-                            html! {
-                                <tr class="test-case-row" {onclick} {style}>
-                                    <td style="padding:4px;">{m.id}</td>
-                                    <td style="padding:4px;">{m.filename}</td>
-                                    <td style="padding:4px;">{m.created_at}</td>
-                                </tr>
-                            }
-                        }) }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    let list_panel = html! {
+        <ItemListPanel<TestCaseMeta>
+            title="一覧"
+            items={(*metas).clone()}
+            selected_id={selected.as_ref().map(|s| s.id)}
+            on_select={on_select}
+            headers={vec!["ID".to_string(), "ファイル名".to_string(), "作成日時".to_string()]}
+            render_item_row={render_item_row}
+        />
     };
 
     let detail_panel = if let Some(detail) = (*selected).clone() {

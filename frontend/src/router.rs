@@ -1,16 +1,18 @@
 use crate::pages::{
-    submissions::SubmissionsPage, submit::SubmitPage, test_cases::TestCasesPage,
-    visualize::VisualizePage,
+    not_found::NotFound, submission_detail::SubmissionDetail, submissions::Submissions,
+    submit::SubmitPage, test_cases::TestCasesPage, visualize::VisualizePage,
 };
 use yew::prelude::*;
 use yew_router::prelude::*;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
-    #[at("/")]
+    #[at("/submit")]
     Submit,
     #[at("/submissions")]
     Submissions,
+    #[at("/submissions/:id")]
+    SubmissionDetail { id: i32 },
     #[at("/test_cases")]
     TestCases,
     #[at("/visualize")]
@@ -23,9 +25,10 @@ pub enum Route {
 pub fn switch(routes: Route) -> Html {
     match routes {
         Route::Submit => html! { <SubmitPage /> },
-        Route::Submissions => html! { <SubmissionsPage /> },
+        Route::Submissions => html! { <Submissions /> },
+        Route::SubmissionDetail { id } => html! { <SubmissionDetail id={id} /> },
         Route::TestCases => html! { <TestCasesPage /> },
         Route::Visualize => html! { <VisualizePage /> },
-        Route::NotFound => html! { <h1>{"ページが見つかりません"}</h1> },
+        Route::NotFound => html! { <NotFound /> },
     }
 }
