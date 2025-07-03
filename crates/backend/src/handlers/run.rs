@@ -1,6 +1,6 @@
 use crate::models::run::{RunRequest, RunResponse};
 use axum::{Json, Router, http::StatusCode, routing::post};
-use heurs_core::{LocalRunner, Runner};
+use heurs_core::{LocalRunner, Runner, load_config};
 use heurs_database::{
     DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
 };
@@ -30,7 +30,7 @@ async fn run_code(Json(req): Json<RunRequest>) -> (StatusCode, Json<RunResponse>
         }
     };
 
-    let config_path = PathBuf::from("heurs.toml");
+    let config = load_config(&PathBuf::from("heurs.toml")).unwrap();
 
     // submissionをデータベースに保存
     let submission = match SubmissionRepository::create(&db, req.source_code.clone()).await {
@@ -73,7 +73,8 @@ async fn run_code(Json(req): Json<RunRequest>) -> (StatusCode, Json<RunResponse>
     let result = runner
         .execute(
             &tmp_path,
-            &config_path,
+            &config.execution.compile_cmd,
+            &config.execution.exec_cmd,
             req.parallel,
             test_cases,
             req.timeout,

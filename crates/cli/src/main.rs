@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 use heurs_core::ExecutionResult;
-use heurs_core::{LocalRunner, Runner};
+use heurs_core::{LocalRunner, Runner, load_config};
 use heurs_database::{
     DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
 };
@@ -178,9 +178,18 @@ async fn main() -> std::result::Result<(), CliError> {
             // Runner 用にクローンを渡し、元の test_cases は後続の表示に再利用する
             let runner_test_cases = test_cases.clone();
 
+            let config = load_config(&config).unwrap();
+
             let runner = LocalRunner::new();
             let execution_results = runner
-                .execute(&source_path, &config, parallel, runner_test_cases, timeout)
+                .execute(
+                    &source_path,
+                    &config.execution.compile_cmd,
+                    &config.execution.exec_cmd,
+                    parallel,
+                    runner_test_cases,
+                    timeout,
+                )
                 .await
                 .map_err(CliError::Execution)?;
 

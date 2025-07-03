@@ -1,13 +1,11 @@
 use async_trait::async_trait;
 use heurs_database::TestCaseModel;
 use regex::Regex;
-use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use threadpool::ThreadPool;
-use toml::Value;
 
 /// 実行結果を表す構造体
 #[derive(Debug, Clone)]
@@ -39,7 +37,8 @@ pub trait Runner {
     async fn execute(
         &self,
         source_path: &Path,
-        config_path: &Path,
+        compile_cmd: &str,
+        exec_cmd: &str,
         parallel: u32,
         test_cases: Vec<TestCaseModel>,
         timeout: u32,
@@ -60,27 +59,12 @@ impl Runner for LocalRunner {
     async fn execute(
         &self,
         source_path: &Path,
-        config_path: &Path,
+        compile_cmd: &str,
+        exec_cmd: &str,
         parallel: u32,
         test_cases: Vec<TestCaseModel>,
         _timeout: u32,
     ) -> Result<Vec<ExecutionResult>, Box<dyn std::error::Error + Send + Sync>> {
-        // heurs.toml をパース
-        let config_str = fs::read_to_string(config_path)?;
-        let config: Value = toml::from_str(&config_str)?;
-
-        let compile_cmd = config
-            .get("compile_cmd")
-            .and_then(|v| v.as_str())
-            .ok_or("compile_cmd not found")?
-            .to_string();
-
-        let exec_cmd = config
-            .get("exec_cmd")
-            .and_then(|v| v.as_str())
-            .ok_or("exec_cmd not found")?
-            .to_string();
-
         // プレースホルダ置換
         let compile_cmd = compile_cmd.replace("{{src}}", &source_path.display().to_string());
 
@@ -95,7 +79,7 @@ impl Runner for LocalRunner {
 
         for test_case in test_cases {
             let tx = tx.clone();
-            let exec_cmd = exec_cmd.clone();
+            let exec_cmd = exec_cmd.to_string();
 
             pool.execute(move || {
                 let input = test_case.input;
