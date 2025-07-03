@@ -1,4 +1,4 @@
-use crate::models::{RunRequest, RunResponse};
+use crate::models::run::{RunRequest, RunResponse};
 use axum::{Json, Router, http::StatusCode, routing::post};
 use heurs_core::{LocalRunner, Runner};
 use heurs_database::{

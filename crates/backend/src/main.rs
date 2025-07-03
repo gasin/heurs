@@ -9,6 +9,7 @@ async fn main() {
     let app = Router::new()
         .merge(handlers::run::run_routes())
         .merge(handlers::test_cases::test_case_routes())
+        .merge(handlers::submissions::submission_routes())
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)

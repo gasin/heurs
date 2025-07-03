@@ -1,4 +1,4 @@
-use crate::models::{TestCase, TestCaseMeta, TestCaseResponse, TestCasesResponse};
+use crate::models::test_cases::{TestCase, TestCaseMeta, TestCaseResponse, TestCasesResponse};
 use axum::{
     Json, Router,
     extract::{Path, Query},
