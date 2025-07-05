@@ -13,3 +13,6 @@ async-trait = "0.1"
 sea-orm = { version = "1.1.12", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros" ] }
 regex = "1.11.1"
 toml = "0.7"
+aws-config = "1"
+aws-sdk-s3 = "1"
+uuid = { version = "1", features = ["v4"] }

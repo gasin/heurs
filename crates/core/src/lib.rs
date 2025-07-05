@@ -4,4 +4,4 @@ pub mod runner;
 
 // Runner関連を再エクスポート
 pub use config::{Config, load_config};
-pub use runner::{ExecutionResult, LocalRunner, Runner};
+pub use runner::{AWSRunner, ExecutionResult, LocalRunner, Runner};

@@ -1,6 +1,5 @@
 use clap::{Parser, Subcommand};
-use heurs_core::ExecutionResult;
-use heurs_core::{LocalRunner, Runner, load_config};
+use heurs_core::{AWSRunner, ExecutionResult, LocalRunner, Runner, load_config};
 use heurs_database::{
     DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
 };
@@ -180,7 +179,13 @@ async fn main() -> std::result::Result<(), CliError> {
 
             let config = load_config(&config).unwrap();
 
-            let runner = LocalRunner::new();
+            // HEURS_ENV の値に応じて Runner を切り替える。
+            // 例: HEURS_ENV=aws なら AWSRunner、その他は LocalRunner
+            let env = std::env::var("HEURS_ENV").unwrap_or_else(|_| "local".to_string());
+            let runner: Box<dyn Runner> = match env.to_ascii_lowercase().as_str() {
+                "aws" => Box::new(AWSRunner::new()),
+                _ => Box::new(LocalRunner::new()),
+            };
             let execution_results = runner
                 .execute(
                     &source_path,
