@@ -35,7 +35,10 @@ int main() {
 
 ## CLI の使い方
 
-`heurs` バイナリには **Run** と **TestCase** の 2 つのサブコマンドがあります。
+### Install
+```bash
+just install
+```
 
 ### Run
 提出プログラムを指定したテストケースで実行し、結果・スコアを DB に保存します。
@@ -56,29 +59,29 @@ heurs run <SOURCE_PATH> \
 heurs run submission.cpp --cases 20 --parallel 4 --timeout 30 --env aws
 ```
 
-### TestCase サブコマンド
-テストケースの登録 / 全削除を行います。
+> **備考**: CLI は内部で README 前章のマーカー (`@@HEURS_SCORE=...` など) をパースし、`execution_results` テーブルにスコアと実行時間を保存します。 
 
-| サブコマンド | 説明 |
-|--------------|------|
-| `add`   | ディレクトリ内の `.txt` / `.in` ファイルをテストケースとして DB に登録 |
-| `clear` | すべてのテストケースを削除 |
 
-#### 追加
+### TestCase
+テストケースの登録 / 削除を行います。<br>
+過去の実験との整合性を保つため、編集操作はサポートされていません。　
+
+#### TestCase Add
+テストケースを登録します。<br>
+基本的には最初に一回実行されることを想定していますが、後から追加することも可能です。
 ```bash
 heurs testcase add --input-path ./cases
 ```
 * `--input-path` にはテストケースファイルが入ったディレクトリを指定してください。
 * ファイル名順 (`Filename` 昇順) に並べ替えられて登録されます。
 
-#### 削除
+
+#### TestCase Clear
+テストケースの一括削除を行います。<br>
+
 ```bash
 heurs testcase clear
 ```
-
----
-
-> **備考**: CLI は内部で README 前章のマーカー (`@@HEURS_SCORE=...` など) をパースし、`execution_results` テーブルにスコアと実行時間を保存します。 
 
 ### LeaderBoard
 指定問題の提出を平均スコア順に並べて上位 N 件を表示します。
@@ -86,8 +89,46 @@ heurs testcase clear
 heurs leaderboard --limit 20
 ```
 
-### Submission describe
+### Submission
+
+#### Submission Describe
 任意の submission の各テストケース詳細を表示します。
 ```bash
 heurs submission describe --submission-id <ID>
 ```
+
+## Frontend
+
+### Usage
+
+#### Preparation
+バックエンドサービスを以下のコマンドで起動しておく必要があります。
+```bash
+cargo run -p heurs-back
+```
+
+#### Run
+`frontend` 下で `trunk serve` を実行します。
+
+### Pages
+
+#### Submission
+ソースコードを提出するためのページです。
+ToDoとして、パラメータ探索を含めた実行などがあります。
+
+<img width="1103" height="599" alt="Image" src="https://github.com/user-attachments/assets/30f62c40-8b74-44a2-90fd-048d04b5a246" />
+
+#### Submissions
+実行結果の比較・確認を行うためのページです。<br>
+ToDoとして、グラフによる可視化や、テストケースを特徴量で絞り込んでの比較などがあります。
+
+<img width="1168" height="880" alt="Image" src="https://github.com/user-attachments/assets/ebb6de85-ac57-4310-a171-9356bb554c25" />
+
+#### TestCases
+テストケースの中身を確認するためのページです。
+<img width="1103" height="608" alt="Image" src="https://github.com/user-attachments/assets/7a3c0d52-9953-4a39-8e3d-3aaf55d12041" />
+
+#### Visualize
+自作のビジュアライザを埋め込む他のページです。<br>
+入出力を元に canvas を生成する関数を書けば自動で埋め込まれる仕組みにする予定ですが整備中です。
+<img width="1113" height="472" alt="Image" src="https://github.com/user-attachments/assets/c0e5c792-7da9-4894-af83-5c1eb80ca068" />
