@@ -4,7 +4,8 @@ default:
 clean:
     rm heurs.db
 
-migrate:
+db-reset:
+    rm heurs.db
     touch heurs.db
     DATABASE_URL="sqlite://heurs.db" sea-orm-cli migrate fresh --migration-dir crates/database/migration
 
