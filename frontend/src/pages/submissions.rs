@@ -148,7 +148,7 @@ pub fn submissions() -> Html {
 
     html! {
         <div>
-            <h1>{ "Submissions Overview" }</h1>
+            <h1>{ "Submissions" }</h1>
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 { list_panel }
                 { detail_panel }

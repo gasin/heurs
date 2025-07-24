@@ -82,7 +82,7 @@ pub fn submit_page() -> Html {
 
     html! {
         <>
-            <h1>{"Run API テスト"}</h1>
+            <h1>{"Submit"}</h1>
             <form onsubmit={on_submit}>
                 <div style="margin-bottom:1em;">
                     <label>{"ソースコード"}</label><br/>

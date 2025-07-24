@@ -76,7 +76,7 @@ pub fn test_cases_page() -> Html {
 
     html! {
         <>
-            <h1>{"TestCases 一覧"}</h1>
+            <h1>{"TestCases"}</h1>
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 {list_panel}
                 {detail_panel}

@@ -158,7 +158,7 @@ pub fn visualize_page() -> Html {
     let parser = use_memo((), |_| build_parser());
     html! {
         <div>
-            <h1>{"Grid Path Visualizer"}</h1>
+            <h1>{"Visualizer"}</h1>
             <p>{"S: スタート, G: ゴール, #: 壁"}</p>
             <VisualizerHost
                 parser={(*parser).clone()}
