@@ -45,14 +45,15 @@ heurs run <SOURCE_PATH> \
   --cases <N> \            # 使用するテストケース数 (既定 10)
   --parallel <N> \         # 並列実行スレッド数 (既定 1)
   --timeout <SEC> \        # タイムアウト秒数 (既定 10)
-  --problem-id <ID> \      # 問題 ID (既定 0)
-  --database-url <URL>      # DB URL (既定 "sqlite://heurs.db")
+  --config <PATH> \        # 設定ファイル (既定 "heurs.toml")
+  --database-url <URL> \   # DB URL (既定 "sqlite://heurs.db")
+  --env <MODE>              # 実行環境 (local / aws 等). 指定なしなら HEURS_ENV 変数 or "local"
 ```
 
 例:
 
 ```bash
-heurs run submission.cpp --cases 20 --parallel 4 --problem-id 3
+heurs run submission.cpp --cases 20 --parallel 4 --timeout 30 --env aws
 ```
 
 ### TestCase サブコマンド
@@ -65,7 +66,7 @@ heurs run submission.cpp --cases 20 --parallel 4 --problem-id 3
 
 #### 追加
 ```bash
-heurs testcase add --input-path ./cases --problem-id 3
+heurs testcase add --input-path ./cases
 ```
 * `--input-path` にはテストケースファイルが入ったディレクトリを指定してください。
 * ファイル名順 (`Filename` 昇順) に並べ替えられて登録されます。
@@ -82,7 +83,7 @@ heurs testcase clear
 ### LeaderBoard
 指定問題の提出を平均スコア順に並べて上位 N 件を表示します。
 ```bash
-heurs leaderboard --problem-id <ID> --limit 20
+heurs leaderboard --limit 20
 ```
 
 ### Submission describe

@@ -59,6 +59,10 @@ enum Commands {
         // データベースURL
         #[arg(short, long, default_value = "sqlite://heurs.db")]
         database_url: String,
+
+        // 実行環境 (local / aws など)。指定がなければ環境変数 HEURS_ENV を使用。
+        #[arg(short, long)]
+        env: Option<String>,
     },
     TestCase(TestCaseArgs),
     LeaderBoard {
@@ -161,6 +165,7 @@ async fn main() -> std::result::Result<(), CliError> {
             timeout,
             config,
             database_url,
+            env,
         } => {
             // データベース接続を確立
             let db = DatabaseManager::connect(&database_url).await?;
@@ -180,9 +185,11 @@ async fn main() -> std::result::Result<(), CliError> {
             let config = load_config(&config).unwrap();
 
             // HEURS_ENV の値に応じて Runner を切り替える。
-            // 例: HEURS_ENV=aws なら AWSRunner、その他は LocalRunner
-            let env = std::env::var("HEURS_ENV").unwrap_or_else(|_| "local".to_string());
-            let runner: Box<dyn Runner> = match env.to_ascii_lowercase().as_str() {
+            let env_mode = env.unwrap_or_else(|| {
+                std::env::var("HEURS_ENV").unwrap_or_else(|_| "local".to_string())
+            });
+
+            let runner: Box<dyn Runner> = match env_mode.to_ascii_lowercase().as_str() {
                 "aws" => Box::new(AWSRunner::new()),
                 _ => Box::new(LocalRunner::new()),
             };
