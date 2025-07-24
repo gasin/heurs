@@ -1,3 +1,56 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
 tr.test-case-row:hover {
     background-color: #f0f0f0;
+}
+
+/* --- ナビゲーションバー --- */
+.nav-bar {
+    display: flex;
+    gap: 1rem;
+    /* 要素間の余白 */
+    background-color: #e6f4ff;
+    /* 薄い青 */
+    color: #004080;
+    /* 文字は濃い青 */
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.nav-link {
+    color: inherit;
+    /* 親の文字色 (#fff) を継承 */
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+/* Link<Route> は現在ページに対して aria-current="page" を付与する */
+.nav-link[aria-current="page"] {
+    text-decoration: underline;
+}
+
+/* --- アプリ全体のコンテナ --- */
+.app-container {
+    width: 95%;
+    /* 画面幅の 95% を使用 */
+    max-width: 1400px;
+    /* 巨大画面では適度に制限 */
+    margin: 1.5rem auto;
+    /* 中央寄せ */
+    padding: 1.5rem 2rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    /* パディングを含めて幅計算 */
 }

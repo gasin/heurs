@@ -26,7 +26,7 @@ where
     html! {
         <div style="width:45%;">
             <h2>{ &props.title }</h2>
-            <div style="max-height:80vh; overflow-y:auto; border:1px solid #ccc;">
+            <div style="max-height:520px; overflow-y:auto; border:1px solid #ccc;">
                 <table style="width:100%;border-collapse:collapse;">
                     <thead>
                         <tr>

@@ -12,12 +12,32 @@ pub fn test_cases_page() -> Html {
     // 初回ロードで一覧取得
     {
         let metas = metas.clone();
+        let selected_state = selected.clone();
         use_effect_with((), move |_| {
             let metas = metas.clone();
             spawn_local(async move {
                 if let Ok(resp) = Request::get("/api/test_cases").send().await {
                     if let Ok(json) = resp.json::<TestCasesResponse>().await {
-                        metas.set(json.test_cases);
+                        if !json.test_cases.is_empty() {
+                            let first_id = json.test_cases[0].id;
+                            // 先に state を設定（リスト描画用）
+                            metas.set(json.test_cases.clone());
+
+                            // 詳細を取得して自動選択
+                            if let Ok(detail_resp) =
+                                Request::get(&format!("/api/test_cases/{}", first_id))
+                                    .send()
+                                    .await
+                            {
+                                if let Ok(detail_json) =
+                                    detail_resp.json::<TestCaseResponse>().await
+                                {
+                                    selected_state.set(Some(detail_json.test_case));
+                                }
+                            }
+                        } else {
+                            metas.set(json.test_cases);
+                        }
                     }
                 }
             });

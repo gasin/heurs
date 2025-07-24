@@ -13,7 +13,7 @@ use crate::router::{Route, switch};
 fn app() -> Html {
     html! {
         <BrowserRouter>
-            <div style="max-width:960px; margin:2em auto; padding:2em; border:1px solid #ccc; border-radius:8px;">
+            <div class="app-container">
                 <NavBar />
                 <Switch<Route> render={switch} />
             </div>

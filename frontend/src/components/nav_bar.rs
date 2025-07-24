@@ -5,11 +5,11 @@ use yew_router::prelude::*;
 #[function_component(NavBar)]
 pub fn nav_bar() -> Html {
     html! {
-        <nav style="margin-bottom:1em;">
-            <Link<Route> to={Route::Submit} >{"[Submit]"}</Link<Route>>{" | "}
-            <Link<Route> to={Route::Submissions} >{"[Submissions]"}</Link<Route>>{" | "}
-            <Link<Route> to={Route::TestCases} >{"[TestCases]"}</Link<Route>>{" | "}
-            <Link<Route> to={Route::Visualize} >{"[Visualize]"}</Link<Route>>
+        <nav class="nav-bar">
+            <Link<Route> classes="nav-link" to={Route::Submit}>{"Submit"}</Link<Route>>
+            <Link<Route> classes="nav-link" to={Route::Submissions}>{"Submissions"}</Link<Route>>
+            <Link<Route> classes="nav-link" to={Route::TestCases}>{"TestCases"}</Link<Route>>
+            <Link<Route> classes="nav-link" to={Route::Visualize}>{"Visualize"}</Link<Route>>
         </nav>
     }
 }

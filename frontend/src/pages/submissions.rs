@@ -27,13 +27,41 @@ pub fn submissions() -> Html {
     // 初回ロードでリストを取得
     {
         let submission_metas = submission_metas.clone();
+        let selected_submission_state = selected_submission.clone();
         let error = error.clone();
         use_effect_with((), move |_| {
             spawn_local(async move {
                 match Request::get("/api/submissions").send().await {
                     Ok(response) if response.ok() => {
                         match response.json::<SubmissionsListResponse>().await {
-                            Ok(resp) => submission_metas.set(resp.submissions),
+                            Ok(mut resp) => {
+                                // Created At 降順にソート
+                                resp.submissions
+                                    .sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+                                // state 更新
+                                let first_id_opt = resp.submissions.first().map(|m| m.id);
+                                submission_metas.set(resp.submissions);
+
+                                // 先頭を自動選択
+                                if let Some(first_id) = first_id_opt {
+                                    // Fetch detail of first submission
+                                    match Request::get(&format!("/api/submissions/{}", first_id))
+                                        .send()
+                                        .await
+                                    {
+                                        Ok(detail_resp) if detail_resp.ok() => {
+                                            if let Ok(detail_json) =
+                                                detail_resp.json::<SubmissionDetailResponse>().await
+                                            {
+                                                selected_submission_state
+                                                    .set(Some(detail_json.submission));
+                                            }
+                                        }
+                                        _ => {}
+                                    }
+                                }
+                            }
                             Err(e) => error.set(Some(format!("Parse error: {}", e))),
                         }
                     }
