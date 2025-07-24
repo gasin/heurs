@@ -18,3 +18,4 @@ aws-sdk-s3 = "1"
 uuid = { version = "1", features = ["v4"] }
 aws-sdk-codebuild = "1"
 aws-sdk-batch = "1"
+once_cell = "1.18"

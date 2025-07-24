@@ -9,7 +9,6 @@ use aws_sdk_batch::{
 use aws_sdk_s3::Client;
 use aws_sdk_s3::primitives::ByteStream;
 use heurs_database::TestCaseModel;
-use regex::Regex;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::{Duration, sleep};
@@ -235,20 +234,8 @@ impl Runner for AWSRunner {
                             }
 
                             // スコアと実行時間をパース
-                            let mut score: i64 = 0;
-                            let mut execution_time_ms: u32 = 0;
-                            let re = Regex::new(r"^@@HEURS_(\w+)=(\d+)$").unwrap();
-                            for line in stderr_data.lines() {
-                                if let Some(cap) = re.captures(line.trim()) {
-                                    match &cap[1] {
-                                        "SCORE" => score = cap[2].parse::<i64>().unwrap_or(0),
-                                        "TIME_MS" => {
-                                            execution_time_ms = cap[2].parse::<u32>().unwrap_or(0)
-                                        }
-                                        _ => {}
-                                    }
-                                }
-                            }
+                            let (score, execution_time_ms) =
+                                crate::extract_heurs_markers!(&stderr_data);
 
                             results.push(ExecutionResult {
                                 test_case_id: tc.id as u32,

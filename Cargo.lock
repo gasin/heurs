@@ -2091,6 +2091,7 @@ dependencies = [
  "aws-sdk-codebuild",
  "aws-sdk-s3",
  "heurs-database",
+ "once_cell",
  "regex",
  "sea-orm",
  "serde",

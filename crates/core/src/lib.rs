@@ -1,5 +1,6 @@
 // モジュール宣言
 pub mod config;
+pub mod macros;
 pub mod runner;
 
 // Runner関連を再エクスポート
