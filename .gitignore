@@ -7,3 +7,6 @@ workspace/
 
 *.out
 *.db
+
+# Ignore environment variable files
+.env

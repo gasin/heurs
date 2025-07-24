@@ -397,6 +397,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-sdk-batch"
+version = "1.85.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fc20f498c880da0649bcc64e646b8d35dc281ecd216401843d620cac82c985c"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-smithy-async",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand",
+ "http 0.2.12",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
+name = "aws-sdk-codebuild"
+version = "1.97.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1837bceee220eea47d36ad5098bd3671a3edff7ca739917ed1dec1a302773cee"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-smithy-async",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand",
+ "http 0.2.12",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
 name = "aws-sdk-s3"
 version = "1.96.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2043,6 +2087,8 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "aws-config",
+ "aws-sdk-batch",
+ "aws-sdk-codebuild",
  "aws-sdk-s3",
  "heurs-database",
  "regex",

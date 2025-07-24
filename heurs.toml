@@ -1,3 +1,5 @@
+env = "local" # "local" or "aws"
+
 [database]
 url = "sqlite://heurs.db"
 
