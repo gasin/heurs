@@ -19,19 +19,7 @@ impl TestCaseRepository {
         test_case.insert(db).await
     }
 
-    pub async fn find_by_id(
-        db: &DatabaseConnection,
-        id: i32,
-    ) -> Result<Option<test_cases::Model>, DbErr> {
-        test_cases::Entity::find_by_id(id).one(db).await
-    }
-
-    pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<test_cases::Model>, DbErr> {
-        test_cases::Entity::find()
-            .order_by_asc(test_cases::Column::Filename)
-            .all(db)
-            .await
-    }
+    crate::impl_basic_fetch!(test_cases);
 
     /// 先頭 `limit` 件のテストケースをファイル名昇順で取得します
     pub async fn find_limit(

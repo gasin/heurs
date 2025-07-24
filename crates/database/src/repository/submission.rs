@@ -17,14 +17,5 @@ impl SubmissionRepository {
         submission.insert(db).await
     }
 
-    pub async fn find_by_id(
-        db: &DatabaseConnection,
-        id: i32,
-    ) -> Result<Option<submissions::Model>, DbErr> {
-        submissions::Entity::find_by_id(id).one(db).await
-    }
-
-    pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<submissions::Model>, DbErr> {
-        submissions::Entity::find().all(db).await
-    }
+    crate::impl_basic_fetch!(submissions);
 }
