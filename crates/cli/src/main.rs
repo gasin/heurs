@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 use heurs_core::{AWSRunner, ExecutionResult, LocalRunner, Runner, load_config};
 use heurs_database::{
     DatabaseManager, ExecutionResultRepository, SubmissionRepository, TestCaseRepository,
@@ -9,6 +9,7 @@ use std::fs;
 use std::path::PathBuf;
 use thiserror::Error;
 
+// DbOpt を下で定義
 mod view;
 
 #[derive(Debug, Error)]
@@ -34,6 +35,13 @@ struct Cli {
     command: Commands,
 }
 
+#[derive(Args, Clone, Debug)]
+struct DbOpt {
+    /// データベースURL
+    #[arg(short, long, default_value = "sqlite://heurs.db")]
+    database_url: String,
+}
+
 #[derive(Subcommand)]
 enum Commands {
     Run {
@@ -56,9 +64,8 @@ enum Commands {
         #[arg(long, default_value = "heurs.toml")]
         config: PathBuf,
 
-        // データベースURL
-        #[arg(short, long, default_value = "sqlite://heurs.db")]
-        database_url: String,
+        #[command(flatten)]
+        db: DbOpt,
 
         // 実行環境 (local / aws など)。指定がなければ環境変数 HEURS_ENV を使用。
         #[arg(short, long)]
@@ -66,9 +73,8 @@ enum Commands {
     },
     TestCase(TestCaseArgs),
     LeaderBoard {
-        // データベースURL
-        #[arg(short, long, default_value = "sqlite://heurs.db")]
-        database_url: String,
+        #[command(flatten)]
+        db: DbOpt,
 
         // 何件表示するか
         #[arg(short, long, default_value = "10")]
@@ -86,9 +92,8 @@ struct SubmissionArgs {
 #[derive(Subcommand, Debug)]
 enum SubmissionCommands {
     Describe {
-        // データベースURL
-        #[arg(short, long, default_value = "sqlite://heurs.db")]
-        database_url: String,
+        #[command(flatten)]
+        db: DbOpt,
 
         #[arg(short, long)]
         submission_id: i32,
@@ -164,11 +169,11 @@ async fn main() -> std::result::Result<(), CliError> {
             parallel,
             timeout,
             config,
-            database_url,
+            db,
             env,
         } => {
             // データベース接続を確立
-            let db = DatabaseManager::connect(&database_url).await?;
+            let db = DatabaseManager::connect(&db.database_url).await?;
 
             // ソースコードを読み込み
             let source_code = fs::read_to_string(&source_path)?;
@@ -235,11 +240,8 @@ async fn main() -> std::result::Result<(), CliError> {
 
             view::render_submission_summary(&submission, &execution_results);
         }
-        Commands::LeaderBoard {
-            database_url,
-            limit,
-        } => {
-            let db = DatabaseManager::connect(&database_url).await?;
+        Commands::LeaderBoard { db, limit } => {
+            let db = DatabaseManager::connect(&db.database_url).await?;
 
             let submissions = SubmissionRepository::find_all(&db).await?;
             let execution_results = ExecutionResultRepository::find_all(&db).await?;
@@ -247,11 +249,8 @@ async fn main() -> std::result::Result<(), CliError> {
             view::render_leaderboard(&submissions, &execution_results, limit);
         }
         Commands::Submission(args) => match args.command {
-            SubmissionCommands::Describe {
-                database_url,
-                submission_id,
-            } => {
-                let db = DatabaseManager::connect(&database_url).await?;
+            SubmissionCommands::Describe { db, submission_id } => {
+                let db = DatabaseManager::connect(&db.database_url).await?;
 
                 let execution_results =
                     ExecutionResultRepository::find_by_submission_id(&db, submission_id as i64)
