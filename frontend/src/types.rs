@@ -66,3 +66,27 @@ pub struct SubmissionDetail {
     pub created_at: String,
     pub execution_results: Vec<ExecutionResultMeta>,
 }
+
+// 日時文字列 (RFC3339想定) を「YYYY-MM-DD HH:MM」の形に整形するヘルパ
+// 例: "2024-07-24T10:39:12Z" -> "2024-07-24 10:39"
+pub fn format_datetime_minute(datetime: &str) -> String {
+    if let Some(t_pos) = datetime.find('T') {
+        let date = &datetime[..t_pos];
+        let mut time_part = &datetime[t_pos + 1..];
+
+        // タイムゾーンや小数秒を取り除く
+        if let Some(idx) = time_part.find(|c| c == 'Z' || c == '+' || c == '.') {
+            time_part = &time_part[..idx];
+        }
+
+        // HH:MM:SS の前 5 文字が HH:MM
+        if time_part.len() >= 5 {
+            let hm = &time_part[..5];
+            format!("{} {}", date, hm)
+        } else {
+            datetime.to_string()
+        }
+    } else {
+        datetime.to_string()
+    }
+}

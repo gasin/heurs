@@ -76,7 +76,7 @@ pub fn submission_detail(props: &Props) -> Html {
                         <pre><code>{ &s.source_code }</code></pre>
                     </div>
                     <div class="card-footer text-muted">
-                        { format!("Submitted at: {}", s.created_at) }
+                        { format!("Submitted at: {}", crate::types::format_datetime_minute(&s.created_at)) }
                     </div>
                 </div>
 

@@ -79,7 +79,7 @@ pub fn submissions() -> Html {
                 <td style="padding:4px;">{meta.id}</td>
                 <td style="padding:4px;">{format!("{:.2}", meta.average_score)}</td>
                 <td style="padding:4px;">{meta.number_of_test_cases}</td>
-                <td style="padding:4px;">{&meta.created_at}</td>
+                <td style="padding:4px;">{crate::types::format_datetime_minute(&meta.created_at)}</td>
             </>
         }
     });
@@ -107,7 +107,7 @@ pub fn submissions() -> Html {
             <div style="width:55%; padding-left: 1em;">
                 <h2>{ "Details" }</h2>
                 <div class="card">
-                    <div class="card-header">{format!("#{} @ {}", s.id, s.created_at)}</div>
+                    <div class="card-header">{format!("#{} @ {}", s.id, crate::types::format_datetime_minute(&s.created_at))}</div>
                     <div class="card-body">
                         <h5 class="card-title">{ "Source Code" }</h5>
                         <div style="max-height: 400px; overflow-y: auto; background-color: #f8f9fa;">

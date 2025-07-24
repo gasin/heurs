@@ -45,7 +45,7 @@ pub fn test_cases_page() -> Html {
             <>
                 <td style="padding:4px;">{meta.id}</td>
                 <td style="padding:4px;">{meta.filename}</td>
-                <td style="padding:4px;">{meta.created_at}</td>
+                <td style="padding:4px;">{crate::types::format_datetime_minute(&meta.created_at)}</td>
             </>
         }
     });
