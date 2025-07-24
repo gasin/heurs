@@ -61,13 +61,20 @@ async fn get_submissions(
                 .unwrap_or_default();
 
         let number_of_test_cases = execution_results.len() as i32;
-        let average_score = execution_results.iter().map(|r| r.score).sum::<i64>() as f64
-            / number_of_test_cases as f64;
-        let average_execution_time_ms = execution_results
-            .iter()
-            .map(|r| r.execution_time_ms)
-            .sum::<i32>() as f64
-            / number_of_test_cases as f64;
+
+        // テストケースが存在しない場合は平均値を 0.0 にする
+        let (average_score, average_execution_time_ms) = if number_of_test_cases == 0 {
+            (0.0, 0.0)
+        } else {
+            let avg_score = execution_results.iter().map(|r| r.score).sum::<i64>() as f64
+                / number_of_test_cases as f64;
+            let avg_time = execution_results
+                .iter()
+                .map(|r| r.execution_time_ms)
+                .sum::<i32>() as f64
+                / number_of_test_cases as f64;
+            (avg_score, avg_time)
+        };
 
         submission_metas.push(SubmissionMeta {
             id: submission.id,
@@ -141,13 +148,21 @@ async fn get_submission(Path(id): Path<i32>) -> (StatusCode, Json<SubmissionResp
             id: submission.id,
             source_code: submission.source_code,
             number_of_test_cases: execution_results.len() as i32,
-            average_score: execution_results.iter().map(|r| r.score).sum::<i64>() as f64
-                / execution_results.len() as f64,
-            average_execution_time_ms: execution_results
-                .iter()
-                .map(|r| r.execution_time_ms)
-                .sum::<i32>() as f64
-                / execution_results.len() as f64,
+            average_score: if execution_results.is_empty() {
+                0.0
+            } else {
+                execution_results.iter().map(|r| r.score).sum::<i64>() as f64
+                    / execution_results.len() as f64
+            },
+            average_execution_time_ms: if execution_results.is_empty() {
+                0.0
+            } else {
+                execution_results
+                    .iter()
+                    .map(|r| r.execution_time_ms)
+                    .sum::<i32>() as f64
+                    / execution_results.len() as f64
+            },
             created_at: submission.timestamp,
             execution_results: execution_results
                 .iter()
